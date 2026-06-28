@@ -1,5 +1,6 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
 import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, getTeams, resolveBracket } from './bracket.js';
+import { formatOddsTime, getMatchOdds, ODDS_SNAPSHOT_URL } from './odds.js';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
@@ -12,6 +13,7 @@ let liveStatus = { text: 'Live-счёт: ещё не обновлялся', ok: 
 let refreshTimer = null;
 let currentView = 'bracket';
 const teamContextCache = new Map();
+let oddsSnapshot = null;
 
 function loadState() {
   try { return { ...createInitialState(), ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; }
@@ -190,6 +192,38 @@ function contextHtml(a, b) {
   </section>`;
 }
 
+function oddsRows(odds = {}, probabilities = {}) {
+  return Object.entries(odds).map(([team, price]) => `
+    <div class="oddsRow">
+      <span>${team}</span>
+      <b>${probabilities[team] ?? '—'}%</b>
+      <strong>${Number(price).toFixed(2)}</strong>
+    </div>`).join('');
+}
+
+function oddsHtml(match) {
+  const market = getMatchOdds(match.id, oddsSnapshot);
+  const source = oddsSnapshot?.source || 'The Odds API';
+  const updated = formatOddsTime(oddsSnapshot?.updatedAt);
+  if (!market?.available) {
+    return `<section class="oddsBlock">
+      <h3>Фаворит</h3>
+      <p class="muted">${market?.message || 'Коэффициенты на проход пока недоступны'}</p>
+      <p class="muted sourceNote">Рынок: проход дальше · источник: ${source}${oddsSnapshot?.updatedAt ? ` · обновлено ${updated} ТБС` : ''}</p>
+      <p class="muted sourceNote">1X2 не показываем, чтобы не путать с проходом дальше.</p>
+    </section>`;
+  }
+  return `<section class="oddsBlock">
+    <h3>Фаворит</h3>
+    <div class="oddsTable">
+      <div class="oddsHead"><span>Команда</span><span>Вероятность</span><span>Коэф.</span></div>
+      ${oddsRows(market.odds, market.probabilities)}
+    </div>
+    <p class="muted sourceNote">Рынок: проход дальше · источник: ${source}${market.sourceBookmaker ? ` / ${market.sourceBookmaker}` : ''} · обновлено ${updated} ТБС</p>
+    <p class="muted sourceNote">Рыночная оценка, не рекомендация. Вероятности нормализованы из коэффициентов.</p>
+  </section>`;
+}
+
 async function loadTeamContext(match) {
   const teams = [match.teamA, match.teamB];
   const loaded = await Promise.all(teams.map(async (team) => {
@@ -220,6 +254,7 @@ async function showMatchDetails(matchId) {
       <dt>Источник</dt><dd>${match.status?.source || 'schedule'} · обновлено ${updated}</dd>
       <dt>Статус API</dt><dd>${match.status?.detail || match.status?.badge || '—'}</dd>
     </dl>
+    ${oddsHtml(match)}
     <div id="teamContextBlock" class="contextLoading">Загружаю форму команд…</div>
   `;
   $('matchDialog').showModal();
@@ -262,6 +297,17 @@ function scheduleNextRefresh() {
   return interval;
 }
 
+
+async function loadOddsSnapshot() {
+  try {
+    const response = await fetch(`${ODDS_SNAPSHOT_URL}?_=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    oddsSnapshot = await response.json();
+  } catch (error) {
+    oddsSnapshot = { source: 'The Odds API', markets: {}, error: error.message };
+  }
+}
+
 async function refreshScores() {
   try {
     const response = await fetch(`${SCOREBOARD_URL}&_=${Date.now()}`, { cache: 'no-store' });
@@ -279,4 +325,4 @@ async function refreshScores() {
   render();
 }
 
-initFilters(); render(); refreshScores();
+initFilters(); render(); loadOddsSnapshot(); refreshScores();

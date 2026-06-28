@@ -1,0 +1,201 @@
+{
+  "updatedAt": "2026-06-28T12:26:19.017Z",
+  "source": "The Odds API",
+  "market": "to_qualify",
+  "available": false,
+  "note": "The Odds API currently rejects the to_qualify market for soccer_fifa_world_cup. 1X2 odds are intentionally not used as a substitute.",
+  "markets": {
+    "73": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "74": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "75": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "76": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "77": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "78": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "79": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "80": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "81": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "82": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "83": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "84": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "85": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "86": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "87": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "88": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "89": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "90": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "91": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "92": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "93": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "94": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "95": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "96": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "97": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "98": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "99": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "100": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "101": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "102": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "103": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    },
+    "104": {
+      "available": false,
+      "market": "to_qualify",
+      "label": "Проход дальше",
+      "message": "Коэффициенты на проход пока недоступны"
+    }
+  }
+}
