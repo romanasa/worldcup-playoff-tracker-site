@@ -112,15 +112,4 @@ async function refreshScores() {
   render();
 }
 
-function bindActions() {
-  $('resetBtn').addEventListener('click', () => { if (confirm('Сбросить локальный кеш? Live-счёт подтянется заново.')) { state = createInitialState(); saveState(); refreshScores(); } });
-  $('refreshBtn').addEventListener('click', refreshScores);
-  $('exportBtn').addEventListener('click', () => { $('exportText').value = JSON.stringify(state, null, 2); $('exportDialog').showModal(); });
-  $('importFile').addEventListener('change', async (event) => {
-    const file = event.target.files[0]; if (!file) return;
-    state = { ...createInitialState(), ...JSON.parse(await file.text()) };
-    saveState(); render(); event.target.value = '';
-  });
-}
-
-initFilters(); bindActions(); render(); refreshScores();
+initFilters(); render(); refreshScores();
