@@ -61,9 +61,16 @@ function labelForSlot(slot) {
 }
 
 function resolveSlot(slot, winners, losers) {
-  if (slot.type === 'team') return { name: slot.name, espnName: slot.espnName, placeholder: false };
-  if (slot.type === 'winner' && winners[slot.id]) return { name: winners[slot.id], placeholder: false };
-  if (slot.type === 'loser' && losers[slot.id]) return { name: losers[slot.id], placeholder: false };
+  const knownTeam = (name) => MATCHES.flatMap((m) => [m.teamA, m.teamB]).find((team) => team.type === 'team' && team.name === name);
+  if (slot.type === 'team') return { name: slot.name, espnName: slot.espnName, espnTeamId: slot.espnTeamId, placeholder: false };
+  if (slot.type === 'winner' && winners[slot.id]) {
+    const base = knownTeam(winners[slot.id]);
+    return { name: winners[slot.id], espnName: base?.espnName, espnTeamId: base?.espnTeamId, placeholder: false };
+  }
+  if (slot.type === 'loser' && losers[slot.id]) {
+    const base = knownTeam(losers[slot.id]);
+    return { name: losers[slot.id], espnName: base?.espnName, espnTeamId: base?.espnTeamId, placeholder: false };
+  }
   return { name: labelForSlot(slot), placeholder: true };
 }
 

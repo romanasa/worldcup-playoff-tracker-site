@@ -1,5 +1,6 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
 import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, getTeams, resolveBracket } from './bracket.js';
+import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -10,6 +11,7 @@ let state = loadState();
 let liveStatus = { text: 'Live-счёт: ещё не обновлялся', ok: true };
 let refreshTimer = null;
 let currentView = 'bracket';
+const teamContextCache = new Map();
 
 function loadState() {
   try { return { ...createInitialState(), ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; }
@@ -165,7 +167,40 @@ function render() {
   $('scheduleViewBtn').classList.toggle('active', currentView === 'schedule');
 }
 
-function showMatchDetails(matchId) {
+function formPills(form = []) {
+  return form.length ? form.map((r) => `<span class="formPill result-${r}">${r}</span>`).join('') : '<span class="muted">нет данных</span>';
+}
+
+function recentList(context) {
+  if (!context?.recent?.length) return '<p class="muted">Нет данных ESPN по последним матчам</p>';
+  return `<ul class="recentList">${context.recent.slice(0, 3).map((m) => `<li><b>${m.outcome}</b> ${m.score} vs ${m.opponent}</li>`).join('')}</ul>`;
+}
+
+function contextHtml(a, b) {
+  if (!a || !b) return '<section class="teamContext"><h3>Форма команд</h3><p class="muted">Данные недоступны для одной из команд.</p></section>';
+  const h2h = findHeadToHead(a, b);
+  return `<section class="teamContext">
+    <h3>Форма команд</h3>
+    <div class="formGrid"><span>${a.team}</span><div>${formPills(a.form)}</div><span>${b.team}</span><div>${formPills(b.form)}</div></div>
+    <h3>Последние матчи</h3>
+    <div class="recentGrid"><div><h4>${a.team}</h4>${recentList(a)}</div><div><h4>${b.team}</h4>${recentList(b)}</div></div>
+    <h3>Очные встречи</h3>
+    ${h2h.length ? `<ul class="recentList">${h2h.map((m) => `<li>${m.score} · ${m.date.slice(0, 10)}</li>`).join('')}</ul>` : '<p class="muted">В последних данных ESPN очных матчей нет.</p>'}
+    <p class="muted sourceNote">Источник: ESPN team schedule</p>
+  </section>`;
+}
+
+async function loadTeamContext(match) {
+  const teams = [match.teamA, match.teamB];
+  const loaded = await Promise.all(teams.map(async (team) => {
+    if (team.placeholder || !team.espnTeamId) return null;
+    if (!teamContextCache.has(team.espnTeamId)) teamContextCache.set(team.espnTeamId, fetchTeamContext(team));
+    return teamContextCache.get(team.espnTeamId);
+  }));
+  return loaded;
+}
+
+async function showMatchDetails(matchId) {
   const resolved = resolveBracket(state);
   const match = resolved.matches.find((item) => item.id === matchId);
   if (!match) return;
@@ -185,8 +220,15 @@ function showMatchDetails(matchId) {
       <dt>Источник</dt><dd>${match.status?.source || 'schedule'} · обновлено ${updated}</dd>
       <dt>Статус API</dt><dd>${match.status?.detail || match.status?.badge || '—'}</dd>
     </dl>
+    <div id="teamContextBlock" class="contextLoading">Загружаю форму команд…</div>
   `;
   $('matchDialog').showModal();
+  try {
+    const [a, b] = await loadTeamContext(match);
+    $('teamContextBlock').outerHTML = contextHtml(a, b);
+  } catch (error) {
+    $('teamContextBlock').outerHTML = `<section class="teamContext"><h3>Форма команд</h3><p class="muted">Не удалось загрузить данные ESPN: ${error.message}</p></section>`;
+  }
 }
 
 function openMatchFromEvent(event) {
