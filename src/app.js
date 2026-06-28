@@ -1,5 +1,5 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getProgress, getTeams, resolveBracket } from './bracket.js';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getMatchPath, getProgress, getTeams, resolveBracket } from './bracket.js';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -63,7 +63,7 @@ function statusLine(match) {
 
 function matchCard(match) {
   const title = match.final ? 'Финал' : match.bronze ? '3-е место' : `Матч ${match.id}`;
-  return `<article class="match ${match.winner ? 'completed' : ''} ${match.final ? 'final' : ''} status-${match.status?.badge || 'SCHEDULED'}">
+  return `<article class="match ${match.winner ? 'completed' : ''} ${match.final ? 'final' : ''} status-${match.status?.badge || 'SCHEDULED'}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
     <div class="meta"><strong>${title}</strong><span>${formatTbilisiTime(match.kickoffUtc)} ТБС</span></div>
     <div class="meta statusMeta">${statusLine(match)}</div>
     ${teamRow(match, 'a')}${teamRow(match, 'b')}
@@ -81,10 +81,73 @@ function render() {
   $('bracket').innerHTML = html;
 }
 
+function roundLabel(match) {
+  return ROUNDS.find((round) => round.key === match.round)?.label || '';
+}
+
+function formatScore(match) {
+  if (!match.score) return '— : —';
+  const pens = match.score.penA != null ? ` пен. ${match.score.penA}:${match.score.penB}` : '';
+  return `${match.score.a}:${match.score.b}${pens}`;
+}
+
+function slotLabel(slot) {
+  return slot === 'teamA' ? 'верхний слот' : 'нижний слот';
+}
+
+function renderPath(path) {
+  const lines = [];
+  if (path.winnerTo) lines.push(`Победитель → M${path.winnerTo.matchId} (${slotLabel(path.winnerTo.slot)})`);
+  else lines.push('Победитель → чемпион / турнир завершён');
+  if (path.loserTo) lines.push(`Проигравший → M${path.loserTo.matchId} (${slotLabel(path.loserTo.slot)})`);
+  else lines.push('Проигравший → вылетает');
+  if (path.feedsFrom.length) lines.push(`Сюда приходят победители: ${path.feedsFrom.map((id) => `M${id}`).join(', ')}`);
+  return lines.map((line) => `<li>${line}</li>`).join('');
+}
+
+function showMatchDetails(matchId) {
+  const resolved = resolveBracket(state);
+  const match = resolved.matches.find((item) => item.id === matchId);
+  if (!match) return;
+  const path = getMatchPath(match.id);
+  const updated = match.status?.updatedAt
+    ? new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(match.status.updatedAt))
+    : '—';
+  $('matchDetails').innerHTML = `
+    <button class="closeBtn" value="cancel" aria-label="Закрыть">×</button>
+    <p class="eyebrow">M${match.id} · ${roundLabel(match)}</p>
+    <h2>${match.teamA.name} — ${match.teamB.name}</h2>
+    <div class="detailScore">${formatScore(match)}</div>
+    <div class="detailStatus">${statusLine(match)}</div>
+    <dl class="detailGrid">
+      <dt>Время</dt><dd>${formatTbilisiTime(match.kickoffUtc)} ТБС</dd>
+      <dt>Стадион</dt><dd>${match.venue}</dd>
+      <dt>Победитель</dt><dd>${match.winner || (match.status?.state === 'in' && match.score ? `если закончится сейчас: ${Number(match.score.a) > Number(match.score.b) ? match.teamA.name : Number(match.score.b) > Number(match.score.a) ? match.teamB.name : 'ничья / овертайм'}` : 'ещё не определён')}</dd>
+      <dt>Источник</dt><dd>${match.status?.source || 'schedule'} · обновлено ${updated}</dd>
+      <dt>Статус API</dt><dd>${match.status?.detail || match.status?.badge || '—'}</dd>
+    </dl>
+    <h3>Путь по сетке</h3>
+    <ul class="pathList">${renderPath(path)}</ul>
+  `;
+  $('matchDialog').showModal();
+}
+
 function initFilters() {
   $('teamFilter').innerHTML = '<option value="all">Все команды</option>' + getTeams().map((t) => `<option value="${t}">${t}</option>`).join('');
   $('statusFilter').addEventListener('change', render);
   $('teamFilter').addEventListener('change', render);
+  $('bracket').addEventListener('click', (event) => {
+    const card = event.target.closest('[data-match-id]');
+    if (card) showMatchDetails(Number(card.dataset.matchId));
+  });
+  $('bracket').addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const card = event.target.closest('[data-match-id]');
+    if (card) { event.preventDefault(); showMatchDetails(Number(card.dataset.matchId)); }
+  });
+  $('matchDialog').addEventListener('click', (event) => {
+    if (event.target.id === 'matchDialog' || event.target.closest('.closeBtn')) $('matchDialog').close();
+  });
 }
 
 function scheduleNextRefresh() {

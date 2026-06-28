@@ -67,6 +67,27 @@ function resolveSlot(slot, winners, losers) {
   return { name: labelForSlot(slot), placeholder: true };
 }
 
+export function getMatchPath(matchId, matchMap = MATCHES) {
+  const feedsFrom = [];
+  let winnerTo = null;
+  let loserTo = null;
+
+  for (const match of matchMap) {
+    for (const slotName of ['teamA', 'teamB']) {
+      const slot = match[slotName];
+      if (slot?.id !== matchId) continue;
+      const target = { matchId: match.id, slot: slotName };
+      if (slot.type === 'winner') winnerTo = target;
+      if (slot.type === 'loser') loserTo = target;
+    }
+    for (const slot of [match.teamA, match.teamB]) {
+      if (slot?.type === 'winner' && match.id === matchId) feedsFrom.push(slot.id);
+    }
+  }
+
+  return { winnerTo, loserTo, feedsFrom };
+}
+
 function inferResult(match, state) {
   const score = state.scores[match.id];
   const teamsReady = !match.teamA.placeholder && !match.teamB.placeholder;
