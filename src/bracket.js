@@ -131,6 +131,20 @@ export function resolveBracket(state) {
   return { matches: resolvedMatches, winners, losers, state };
 }
 
+export function getBracketScheme(resolved) {
+  const columns = [
+    { key: 'r32', label: '1/32 финала' },
+    { key: 'r16', label: '1/16 финала' },
+    { key: 'qf', label: '1/4 финала' },
+    { key: 'sf', label: '1/2 финала' },
+    { key: 'finals', label: 'Финалы' },
+  ];
+  return columns.map((column) => {
+    const matches = resolved.matches.filter((m) => column.key === 'finals' ? (m.final || m.bronze) : m.round === column.key);
+    return { ...column, ids: matches.map((m) => m.id), matches };
+  });
+}
+
 export function getProgress(resolved) {
   const completed = resolved.matches.filter((m) => Boolean(m.winner)).length;
   const sf101 = resolved.matches.find((m) => m.id === 101);

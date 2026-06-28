@@ -1,5 +1,5 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getHomeSummary, getProgress, getTeams, resolveBracket } from './bracket.js';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, getTeams, resolveBracket } from './bracket.js';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -131,14 +131,37 @@ function renderSchedule(resolved) {
     </section>`).join('') || '<div class="empty">Нет матчей по фильтру</div>';
 }
 
+function schemeNode(match) {
+  const score = match.score ? `<span class="schemeScore">${formatScore(match)}</span>` : '';
+  return `<article class="schemeMatch ${match.status?.state === 'in' ? 'liveNow' : ''} ${match.winner ? 'completed' : ''}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
+    <small>M${match.id} · ${shortTime(match.kickoffUtc)}</small>
+    <strong>${match.teamA.name}</strong>
+    <strong>${match.teamB.name}</strong>
+    ${score}
+  </article>`;
+}
+
+function renderScheme(resolved) {
+  const scheme = getBracketScheme(resolved);
+  $('scheme').innerHTML = `<div class="schemeCanvas">
+    ${scheme.map((column) => `<section class="schemeColumn scheme-${column.key}">
+      <h2>${column.label}</h2>
+      <div class="schemeStack">${column.matches.map(schemeNode).join('')}</div>
+    </section>`).join('')}
+  </div>`;
+}
+
 function render() {
   const resolved = resolveBracket(state);
   renderHome(resolved);
   renderBracket(resolved);
+  renderScheme(resolved);
   renderSchedule(resolved);
   $('bracket').classList.toggle('hidden', currentView !== 'bracket');
+  $('scheme').classList.toggle('hidden', currentView !== 'scheme');
   $('schedule').classList.toggle('hidden', currentView !== 'schedule');
   $('bracketViewBtn').classList.toggle('active', currentView === 'bracket');
+  $('schemeViewBtn').classList.toggle('active', currentView === 'scheme');
   $('scheduleViewBtn').classList.toggle('active', currentView === 'schedule');
 }
 
@@ -176,6 +199,7 @@ function initFilters() {
   $('statusFilter').addEventListener('change', render);
   $('teamFilter').addEventListener('change', render);
   $('bracketViewBtn').addEventListener('click', () => { currentView = 'bracket'; render(); });
+  $('schemeViewBtn').addEventListener('click', () => { currentView = 'scheme'; render(); });
   $('scheduleViewBtn').addEventListener('click', () => { currentView = 'schedule'; render(); });
   document.addEventListener('click', (event) => {
     if (event.target.id === 'matchDialog' || event.target.closest('.closeBtn')) $('matchDialog').close();
