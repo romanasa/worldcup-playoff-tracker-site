@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ЧМ-2026 — трекер плей-офф</title>
+  <link rel="stylesheet" href="src/styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">FIFA World Cup 2026</p>
+      <h1>Трекер плей-офф</h1>
+      <p class="muted">Вводи счёт или выбирай победителя — сетка обновится автоматически.</p>
+    </div>
+    <section class="panel stats" id="stats"></section>
+  </header>
+
+  <main>
+    <section class="toolbar panel">
+      <label>Фильтр
+        <select id="statusFilter">
+          <option value="all">Все матчи</option>
+          <option value="upcoming">Не завершены</option>
+          <option value="completed">Завершены</option>
+        </select>
+      </label>
+      <label>Команда
+        <select id="teamFilter"><option value="all">Все команды</option></select>
+      </label>
+      <button id="exportBtn">Экспорт JSON</button>
+      <label class="fileBtn">Импорт JSON <input id="importFile" type="file" accept="application/json" /></label>
+      <button id="resetBtn" class="danger">Сброс</button>
+    </section>
+
+    <section id="bracket" class="bracket" aria-live="polite"></section>
+  </main>
+
+  <dialog id="exportDialog">
+    <form method="dialog">
+      <h2>Экспорт состояния</h2>
+      <textarea id="exportText" readonly></textarea>
+      <button>Закрыть</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
