@@ -1,5 +1,5 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getMatchPath, getProgress, getTeams, resolveBracket } from './bracket.js';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getProgress, getTeams, resolveBracket } from './bracket.js';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -91,25 +91,10 @@ function formatScore(match) {
   return `${match.score.a}:${match.score.b}${pens}`;
 }
 
-function slotLabel(slot) {
-  return slot === 'teamA' ? 'верхний слот' : 'нижний слот';
-}
-
-function renderPath(path) {
-  const lines = [];
-  if (path.winnerTo) lines.push(`Победитель → M${path.winnerTo.matchId} (${slotLabel(path.winnerTo.slot)})`);
-  else lines.push('Победитель → чемпион / турнир завершён');
-  if (path.loserTo) lines.push(`Проигравший → M${path.loserTo.matchId} (${slotLabel(path.loserTo.slot)})`);
-  else lines.push('Проигравший → вылетает');
-  if (path.feedsFrom.length) lines.push(`Сюда приходят победители: ${path.feedsFrom.map((id) => `M${id}`).join(', ')}`);
-  return lines.map((line) => `<li>${line}</li>`).join('');
-}
-
 function showMatchDetails(matchId) {
   const resolved = resolveBracket(state);
   const match = resolved.matches.find((item) => item.id === matchId);
   if (!match) return;
-  const path = getMatchPath(match.id);
   const updated = match.status?.updatedAt
     ? new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(match.status.updatedAt))
     : '—';
@@ -126,8 +111,6 @@ function showMatchDetails(matchId) {
       <dt>Источник</dt><dd>${match.status?.source || 'schedule'} · обновлено ${updated}</dd>
       <dt>Статус API</dt><dd>${match.status?.detail || match.status?.badge || '—'}</dd>
     </dl>
-    <h3>Путь по сетке</h3>
-    <ul class="pathList">${renderPath(path)}</ul>
   `;
   $('matchDialog').showModal();
 }
