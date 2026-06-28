@@ -1,6 +1,6 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
 import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, getTeams, resolveBracket } from './bracket.js';
-import { formatOddsTime, getMatchOdds, ODDS_SNAPSHOT_URL } from './odds.js';
+import { formatOddsTime, getMatchOdds, ODDS_SNAPSHOT_URL } from './odds.js?v=real-odds';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
