@@ -1,5 +1,5 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getProgress, getTeams, resolveBracket, setManualWinner, setScore } from './bracket.js';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getProgress, getTeams, resolveBracket } from './bracket.js';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -38,17 +38,12 @@ function visibleMatch(match) {
 
 function teamRow(match, side) {
   const team = side === 'a' ? match.teamA : match.teamB;
+  const score = side === 'a' ? scoreValue(match, 'a') : scoreValue(match, 'b');
   const isWinner = match.winner === team.name;
-  return `<div class="teamRow">
+  return `<div class="teamRow readonly">
     <div class="team ${team.placeholder ? 'placeholder' : ''} ${isWinner ? 'winner' : ''}">${team.name}</div>
-    <input class="score" data-match="${match.id}" data-side="${side}" type="number" min="0" inputmode="numeric" value="${scoreValue(match, side)}" aria-label="Счёт ${team.name}">
+    <div class="scoreBox" aria-label="Счёт ${team.name}">${score === '' ? '—' : score}</div>
   </div>`;
-}
-
-function manualButtons(match) {
-  if (match.teamA.placeholder || match.teamB.placeholder) return '';
-  const btn = (team) => `<button data-winner="${team}" data-match="${match.id}" ${match.manualWinner === team ? 'class="winner"' : ''}>${team}</button>`;
-  return `<div class="manual"><span class="muted">Победитель:</span>${btn(match.teamA.name)}${btn(match.teamB.name)}<button data-clear="${match.id}">очистить</button></div>`;
 }
 
 function matchCard(match) {
@@ -56,7 +51,6 @@ function matchCard(match) {
   return `<article class="match ${match.winner ? 'completed' : ''} ${match.final ? 'final' : ''}">
     <div class="meta"><strong>${title}</strong><span>${formatTbilisiTime(match.kickoffUtc)} ТБС</span></div>
     ${teamRow(match, 'a')}${teamRow(match, 'b')}
-    ${manualButtons(match)}
     <div class="meta"><span>${match.venue}</span>${match.winner ? `<span>✓ ${match.winner}</span>` : '<span>ожидает'}</div>
   </article>`;
 }
@@ -93,21 +87,7 @@ async function refreshScores() {
 }
 
 function bindActions() {
-  $('bracket').addEventListener('change', (event) => {
-    if (!event.target.matches('.score')) return;
-    const matchId = Number(event.target.dataset.match);
-    const card = event.target.closest('.match');
-    const inputs = card.querySelectorAll('.score');
-    state = setScore(state, matchId, inputs[0].value, inputs[1].value);
-    saveState(); render();
-  });
-  $('bracket').addEventListener('click', (event) => {
-    const matchId = Number(event.target.dataset.match || event.target.dataset.clear);
-    if (!matchId) return;
-    state = setManualWinner(state, matchId, event.target.dataset.winner || null);
-    saveState(); render();
-  });
-  $('resetBtn').addEventListener('click', () => { if (confirm('Сбросить все локальные правки? Live-счёт подтянется заново.')) { state = createInitialState(); saveState(); refreshScores(); } });
+  $('resetBtn').addEventListener('click', () => { if (confirm('Сбросить локальный кеш? Live-счёт подтянется заново.')) { state = createInitialState(); saveState(); refreshScores(); } });
   $('refreshBtn').addEventListener('click', refreshScores);
   $('exportBtn').addEventListener('click', () => { $('exportText').value = JSON.stringify(state, null, 2); $('exportDialog').showModal(); });
   $('importFile').addEventListener('change', async (event) => {
