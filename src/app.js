@@ -3,10 +3,12 @@ import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getProgress
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
+const LIVE_REFRESH_MS = 15_000;
 const $ = (id) => document.getElementById(id);
 
 let state = loadState();
 let liveStatus = { text: 'Live-счёт: ещё не обновлялся', ok: true };
+let refreshTimer = null;
 
 function loadState() {
   try { return { ...createInitialState(), ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; }
@@ -17,7 +19,7 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 function renderStats(resolved) {
   const p = getProgress(resolved);
   $('stats').innerHTML = `<div class="statGrid">
-    <div class="stat"><b>${p.completed}/${p.total}</b><span>матчей заполнено</span></div>
+    <div class="stat"><b>${p.completed}/${p.total}</b><span>матчей завершено</span></div>
     <div class="stat"><b>${p.percent}%</b><span>прогресс</span></div>
     <div class="stat"><b>${p.champion || '—'}</b><span>чемпион</span></div>
     <div class="stat"><b>${p.finalists.join(' × ')}</b><span>потенциальный финал</span></div>
@@ -26,6 +28,7 @@ function renderStats(resolved) {
 }
 
 function scoreValue(match, side) { return match.score?.[side] ?? ''; }
+function penaltyValue(match, side) { return side === 'a' ? match.score?.penA : match.score?.penB; }
 function hasTeam(match, name) { return [match.teamA.name, match.teamB.name, match.winner, match.loser].includes(name); }
 function visibleMatch(match) {
   const status = $('statusFilter').value;
@@ -39,17 +42,30 @@ function visibleMatch(match) {
 function teamRow(match, side) {
   const team = side === 'a' ? match.teamA : match.teamB;
   const score = side === 'a' ? scoreValue(match, 'a') : scoreValue(match, 'b');
+  const penalty = penaltyValue(match, side);
   const isWinner = match.winner === team.name;
   return `<div class="teamRow readonly">
     <div class="team ${team.placeholder ? 'placeholder' : ''} ${isWinner ? 'winner' : ''}">${team.name}</div>
-    <div class="scoreBox" aria-label="Счёт ${team.name}">${score === '' ? '—' : score}</div>
+    <div class="scoreBox" aria-label="Счёт ${team.name}">${score === '' ? '—' : score}${penalty != null ? `<small>(${penalty})</small>` : ''}</div>
   </div>`;
+}
+
+function statusLine(match) {
+  const status = match.status || {};
+  const updated = status.updatedAt
+    ? new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit' }).format(new Date(status.updatedAt))
+    : '';
+  const parts = [`<span class="badge ${status.badge || 'SCHEDULED'}">${status.badge || 'SCHEDULED'}</span>`];
+  if (status.minute) parts.push(status.minute);
+  if (updated) parts.push(`ESPN ${updated}`);
+  return parts.join(' · ');
 }
 
 function matchCard(match) {
   const title = match.final ? 'Финал' : match.bronze ? '3-е место' : `Матч ${match.id}`;
-  return `<article class="match ${match.winner ? 'completed' : ''} ${match.final ? 'final' : ''}">
+  return `<article class="match ${match.winner ? 'completed' : ''} ${match.final ? 'final' : ''} status-${match.status?.badge || 'SCHEDULED'}">
     <div class="meta"><strong>${title}</strong><span>${formatTbilisiTime(match.kickoffUtc)} ТБС</span></div>
+    <div class="meta statusMeta">${statusLine(match)}</div>
     ${teamRow(match, 'a')}${teamRow(match, 'b')}
     <div class="meta"><span>${match.venue}</span>${match.winner ? `<span>✓ ${match.winner}</span>` : '<span>ожидает'}</div>
   </article>`;
@@ -71,6 +87,14 @@ function initFilters() {
   $('teamFilter').addEventListener('change', render);
 }
 
+function scheduleNextRefresh() {
+  clearInterval(refreshTimer);
+  const hasLive = resolveBracket(state).matches.some((m) => m.status?.state === 'in');
+  const interval = hasLive ? LIVE_REFRESH_MS : REFRESH_MS;
+  refreshTimer = setInterval(refreshScores, interval);
+  return interval;
+}
+
 async function refreshScores() {
   try {
     const response = await fetch(`${SCOREBOARD_URL}&_=${Date.now()}`, { cache: 'no-store' });
@@ -79,8 +103,10 @@ async function refreshScores() {
     state = applyEspnScoreboard(state, data.events || []);
     saveState();
     const updated = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
-    liveStatus = { ok: true, text: `Live-счёт ESPN обновлён в ${updated} Тбилиси · автообновление раз в ${REFRESH_MS / 1000} сек.` };
+    const nextInterval = scheduleNextRefresh();
+    liveStatus = { ok: true, text: `Live-счёт ESPN обновлён в ${updated} Тбилиси · автообновление раз в ${nextInterval / 1000} сек.` };
   } catch (error) {
+    scheduleNextRefresh();
     liveStatus = { ok: false, text: `Live-счёт недоступен: ${error.message}` };
   }
   render();
@@ -97,4 +123,4 @@ function bindActions() {
   });
 }
 
-initFilters(); bindActions(); render(); refreshScores(); setInterval(refreshScores, REFRESH_MS);
+initFilters(); bindActions(); render(); refreshScores();

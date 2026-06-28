@@ -3,7 +3,7 @@ import { MATCHES } from './data.js';
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 export function createInitialState() {
-  return { scores: {}, manualWinners: {}, favorites: [] };
+  return { scores: {}, manualWinners: {}, statuses: {}, favorites: [] };
 }
 
 export function setScore(state, matchId, scoreA, scoreB) {
@@ -19,11 +19,39 @@ export function setScore(state, matchId, scoreA, scoreB) {
   return next;
 }
 
+function setScoreDetails(state, matchId, scoreA, scoreB, penA = null, penB = null) {
+  const next = setScore(state, matchId, scoreA, scoreB);
+  if (penA !== null && penB !== null && next.scores[matchId]) {
+    next.scores[matchId].penA = Number(penA);
+    next.scores[matchId].penB = Number(penB);
+  }
+  return next;
+}
+
 export function setManualWinner(state, matchId, winnerName) {
   const next = clone(state);
   if (winnerName) next.manualWinners[matchId] = winnerName;
   else delete next.manualWinners[matchId];
   return next;
+}
+
+function setMatchStatus(state, matchId, status) {
+  const next = clone(state);
+  next.statuses ||= {};
+  next.statuses[matchId] = status;
+  return next;
+}
+
+function normalizeEspnStatus(event, hasPenalties = false) {
+  const type = event.status?.type || {};
+  const state = type.state || 'pre';
+  const detail = type.shortDetail || type.detail || type.description || '';
+  let minute = event.status?.displayClock || detail.match(/\d+'/)?.[0] || '';
+  let badge = 'SCHEDULED';
+  if (state !== 'in') minute = '';
+  if (state === 'in') badge = /half/i.test(detail) || detail === 'HT' ? 'HT' : 'LIVE';
+  if (state === 'post') badge = hasPenalties || /pen/i.test(detail) ? 'PEN' : /AET|Extra/i.test(detail) ? 'AET' : 'FT';
+  return { state, badge, detail, minute, source: 'ESPN', updatedAt: new Date().toISOString() };
 }
 
 function labelForSlot(slot) {
@@ -43,13 +71,16 @@ function inferResult(match, state) {
   const score = state.scores[match.id];
   const teamsReady = !match.teamA.placeholder && !match.teamB.placeholder;
   const manual = state.manualWinners[match.id];
+  if (manual && teamsReady && [match.teamA.name, match.teamB.name].includes(manual)) {
+    return { winner: manual, loser: manual === match.teamA.name ? match.teamB.name : match.teamA.name };
+  }
+  if (match.status?.source === 'ESPN' && match.status.state !== 'post') {
+    return { winner: null, loser: null };
+  }
   if (score && Number.isFinite(score.a) && Number.isFinite(score.b) && score.a !== score.b && teamsReady) {
     return score.a > score.b
       ? { winner: match.teamA.name, loser: match.teamB.name }
       : { winner: match.teamB.name, loser: match.teamA.name };
-  }
-  if (manual && teamsReady && [match.teamA.name, match.teamB.name].includes(manual)) {
-    return { winner: manual, loser: manual === match.teamA.name ? match.teamB.name : match.teamA.name };
   }
   return { winner: null, loser: null };
 }
@@ -65,6 +96,7 @@ export function resolveBracket(state) {
       teamA: resolveSlot(base.teamA, winners, losers),
       teamB: resolveSlot(base.teamB, winners, losers),
       score: state.scores[base.id] ?? null,
+      status: state.statuses?.[base.id] ?? { state: 'pre', badge: 'SCHEDULED', detail: 'Scheduled', source: 'schedule' },
       manualWinner: state.manualWinners[base.id] ?? null,
     };
     const result = inferResult(match, state);
@@ -118,20 +150,28 @@ export function applyEspnScoreboard(state, events, matchMap = MATCHES) {
     const match = byEspn.get(String(event.id));
     if (!match) continue;
     const competition = event.competitions?.[0];
+    const home = competition?.competitors?.find((c) => c.homeAway === 'home');
+    const away = competition?.competitors?.find((c) => c.homeAway === 'away');
+    const hasPenalties = home?.shootoutScore != null || away?.shootoutScore != null;
+    next = setMatchStatus(next, match.id, normalizeEspnStatus(event, hasPenalties));
     const status = event.status?.type || {};
     if (!competition || status.state === 'pre') continue;
 
-    const home = competition.competitors?.find((c) => c.homeAway === 'home');
-    const away = competition.competitors?.find((c) => c.homeAway === 'away');
     const scoreByName = new Map([
       [home?.team?.displayName, Number(home?.score)],
       [away?.team?.displayName, Number(away?.score)],
     ]);
+    const pensByName = new Map([
+      [home?.team?.displayName, home?.shootoutScore],
+      [away?.team?.displayName, away?.shootoutScore],
+    ]);
 
     const scoreA = scoreByName.get(match.teamA.espnName);
     const scoreB = scoreByName.get(match.teamB.espnName);
+    const penA = pensByName.get(match.teamA.espnName);
+    const penB = pensByName.get(match.teamB.espnName);
     if (Number.isFinite(scoreA) && Number.isFinite(scoreB)) {
-      next = setScore(next, match.id, scoreA, scoreB);
+      next = setScoreDetails(next, match.id, scoreA, scoreB, penA ?? null, penB ?? null);
     }
 
     if (status.state === 'post') {
