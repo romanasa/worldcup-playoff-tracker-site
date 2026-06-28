@@ -8,6 +8,10 @@ export function createInitialState() {
 
 export function setScore(state, matchId, scoreA, scoreB) {
   const next = clone(state);
+  if (scoreA === '' || scoreB === '' || scoreA == null || scoreB == null) {
+    delete next.scores[matchId];
+    return next;
+  }
   next.scores[matchId] = {
     a: Number.isFinite(Number(scoreA)) ? Number(scoreA) : null,
     b: Number.isFinite(Number(scoreB)) ? Number(scoreB) : null,
@@ -29,7 +33,7 @@ function labelForSlot(slot) {
 }
 
 function resolveSlot(slot, winners, losers) {
-  if (slot.type === 'team') return { name: slot.name, placeholder: false };
+  if (slot.type === 'team') return { name: slot.name, espnName: slot.espnName, placeholder: false };
   if (slot.type === 'winner' && winners[slot.id]) return { name: winners[slot.id], placeholder: false };
   if (slot.type === 'loser' && losers[slot.id]) return { name: losers[slot.id], placeholder: false };
   return { name: labelForSlot(slot), placeholder: true };
@@ -94,4 +98,47 @@ export function getTeams() {
     names.add(m.teamB.name);
   }
   return [...names].sort((a, b) => a.localeCompare(b, 'ru'));
+}
+
+export function formatTbilisiTime(iso) {
+  return new Intl.DateTimeFormat('ru-RU', {
+    timeZone: 'Asia/Tbilisi',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso));
+}
+
+export function applyEspnScoreboard(state, events, matchMap = MATCHES) {
+  let next = clone(state);
+  const byEspn = new Map(matchMap.map((m) => [String(m.espnId), m]));
+
+  for (const event of events || []) {
+    const match = byEspn.get(String(event.id));
+    if (!match) continue;
+    const competition = event.competitions?.[0];
+    const status = event.status?.type || {};
+    if (!competition || status.state === 'pre') continue;
+
+    const home = competition.competitors?.find((c) => c.homeAway === 'home');
+    const away = competition.competitors?.find((c) => c.homeAway === 'away');
+    const scoreByName = new Map([
+      [home?.team?.displayName, Number(home?.score)],
+      [away?.team?.displayName, Number(away?.score)],
+    ]);
+
+    const scoreA = scoreByName.get(match.teamA.espnName);
+    const scoreB = scoreByName.get(match.teamB.espnName);
+    if (Number.isFinite(scoreA) && Number.isFinite(scoreB)) {
+      next = setScore(next, match.id, scoreA, scoreB);
+    }
+
+    if (status.state === 'post') {
+      const espnWinner = competition.competitors?.find((c) => c.winner)?.team?.displayName;
+      const winnerName = match.teamA.espnName === espnWinner ? match.teamA.name : match.teamB.espnName === espnWinner ? match.teamB.name : null;
+      if (winnerName) next = setManualWinner(next, match.id, winnerName);
+    }
+  }
+  return next;
 }
