@@ -1,201 +1,644 @@
 {
-  "updatedAt": "2026-06-28T12:26:19.017Z",
+  "updatedAt": "2026-06-28T13:41:07.393Z",
   "source": "The Odds API",
-  "market": "to_qualify",
-  "available": false,
-  "note": "The Odds API currently rejects the to_qualify market for soccer_fifa_world_cup. 1X2 odds are intentionally not used as a substitute.",
+  "available": true,
+  "note": "The Odds API currently does not expose a true to-qualify market for this sport. Snapshot uses event-specific h2h_3_way and draw_no_bet markets.",
   "markets": {
     "73": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "def55b09ef3d6854e3c01e74b5c63415",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Канада": 1.65,
+            "ЮАР": 6,
+            "Ничья": 3.55
+          },
+          "probabilities": {
+            "Канада": 57,
+            "ЮАР": 16,
+            "Ничья": 27
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "Virgin Bet",
+          "odds": {
+            "Канада": 1.2,
+            "ЮАР": 4
+          },
+          "probabilities": {
+            "Канада": 77,
+            "ЮАР": 23
+          },
+          "updatedAt": "2026-06-28T13:40:39Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "74": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "4930db8e83436874d09e59bd0e29c1a5",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Германия": 1.33,
+            "Парагвай": 9.5,
+            "Ничья": 5
+          },
+          "probabilities": {
+            "Германия": 71,
+            "Парагвай": 10,
+            "Ничья": 19
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "LiveScore Bet",
+          "odds": {
+            "Германия": 1.08,
+            "Парагвай": 6.25
+          },
+          "probabilities": {
+            "Германия": 85,
+            "Парагвай": 15
+          },
+          "updatedAt": "2026-06-28T13:40:27Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "75": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "5a34afe2de99513ba48360b983cfe80c",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Марокко": 3.9,
+            "Нидерланды": 2.15,
+            "Ничья": 3
+          },
+          "probabilities": {
+            "Марокко": 24,
+            "Нидерланды": 44,
+            "Ничья": 32
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "Virgin Bet",
+          "odds": {
+            "Марокко": 2.55,
+            "Нидерланды": 1.44
+          },
+          "probabilities": {
+            "Марокко": 36,
+            "Нидерланды": 64
+          },
+          "updatedAt": "2026-06-28T13:40:39Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "76": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "4f3d72fba877939d36a5315618184093",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Бразилия": 1.67,
+            "Япония": 5.25,
+            "Ничья": 3.75
+          },
+          "probabilities": {
+            "Бразилия": 57,
+            "Япония": 18,
+            "Ничья": 25
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "Virgin Bet",
+          "odds": {
+            "Бразилия": 1.24,
+            "Япония": 3.6
+          },
+          "probabilities": {
+            "Бразилия": 74,
+            "Япония": 26
+          },
+          "updatedAt": "2026-06-28T13:40:39Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "77": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "0b5491529142c9bcc3f88bf45ccb0a7b",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Франция": 1.25,
+            "Швеция": 11.5,
+            "Ничья": 6
+          },
+          "probabilities": {
+            "Франция": 76,
+            "Швеция": 8,
+            "Ничья": 16
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "LiveScore Bet",
+          "odds": {
+            "Франция": 1.04,
+            "Швеция": 7.5
+          },
+          "probabilities": {
+            "Франция": 88,
+            "Швеция": 12
+          },
+          "updatedAt": "2026-06-28T13:40:27Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "78": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "ce017bea1a26252278053ce759e2416b",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Кот-д’Ивуар": 3.8,
+            "Норвегия": 2.02,
+            "Ничья": 3.35
+          },
+          "probabilities": {
+            "Кот-д’Ивуар": 25,
+            "Норвегия": 47,
+            "Ничья": 28
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "BetRivers",
+          "odds": {
+            "Кот-д’Ивуар": 2.6,
+            "Норвегия": 1.42
+          },
+          "probabilities": {
+            "Кот-д’Ивуар": 35,
+            "Норвегия": 65
+          },
+          "updatedAt": "2026-06-28T13:40:41Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "79": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "f58c55a9da96af562c31b7c5cca40187",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Эквадор": 3.85,
+            "Мексика": 2.23,
+            "Ничья": 2.85
+          },
+          "probabilities": {
+            "Эквадор": 25,
+            "Мексика": 42,
+            "Ничья": 33
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "BetRivers",
+          "odds": {
+            "Эквадор": 2.48,
+            "Мексика": 1.47
+          },
+          "probabilities": {
+            "Эквадор": 37,
+            "Мексика": 63
+          },
+          "updatedAt": "2026-06-28T13:40:56Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "80": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "81": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "82": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "658ac8cbf214ca3cc150109b4ddc1e74",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Бельгия": 2.08,
+            "Сенегал": 3.9,
+            "Ничья": 3.15
+          },
+          "probabilities": {
+            "Бельгия": 46,
+            "Сенегал": 24,
+            "Ничья": 30
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "Virgin Bet",
+          "odds": {
+            "Бельгия": 1.43,
+            "Сенегал": 2.6
+          },
+          "probabilities": {
+            "Бельгия": 65,
+            "Сенегал": 35
+          },
+          "updatedAt": "2026-06-28T13:40:39Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "83": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "852b4baf0be4b9eef2a30596a8d39249",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Хорватия": 4.8,
+            "Португалия": 1.8,
+            "Ничья": 3.45
+          },
+          "probabilities": {
+            "Хорватия": 20,
+            "Португалия": 53,
+            "Ничья": 28
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "BetRivers",
+          "odds": {
+            "Хорватия": 3.2,
+            "Португалия": 1.29
+          },
+          "probabilities": {
+            "Хорватия": 29,
+            "Португалия": 71
+          },
+          "updatedAt": "2026-06-28T13:40:02Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "84": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "a518ac20df8f5c732b881e213ae0c230",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Австрия": 13,
+            "Испания": 1.27,
+            "Ничья": 5.25
+          },
+          "probabilities": {
+            "Австрия": 7,
+            "Испания": 75,
+            "Ничья": 18
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "BetRivers",
+          "odds": {
+            "Австрия": 8,
+            "Испания": 1.03
+          },
+          "probabilities": {
+            "Австрия": 11,
+            "Испания": 89
+          },
+          "updatedAt": "2026-06-28T13:40:19Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "85": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "c17fe2e46190d7ab6af01504ff240e82",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Алжир": 4.5,
+            "Швейцария": 1.81,
+            "Ничья": 3.5
+          },
+          "probabilities": {
+            "Алжир": 21,
+            "Швейцария": 52,
+            "Ничья": 27
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "BetRivers",
+          "odds": {
+            "Алжир": 3.05,
+            "Швейцария": 1.3
+          },
+          "probabilities": {
+            "Алжир": 30,
+            "Швейцария": 70
+          },
+          "updatedAt": "2026-06-28T13:40:19Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "86": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "3e161b2448ed76d6b0c0f5bda6fd5bf2",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Аргентина": 1.13,
+            "Кабо-Верде": 21,
+            "Ничья": 8.5
+          },
+          "probabilities": {
+            "Аргентина": 84,
+            "Кабо-Верде": 5,
+            "Ничья": 11
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "Pinnacle",
+          "odds": {
+            "Аргентина": 1.04,
+            "Кабо-Верде": 16.54
+          },
+          "probabilities": {
+            "Аргентина": 94,
+            "Кабо-Верде": 6
+          },
+          "updatedAt": "2026-06-28T13:41:05Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "87": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "88e032a2b2e5042d26db3f0da1df924a",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Колумбия": 1.56,
+            "Гана": 6.75,
+            "Ничья": 3.75
+          },
+          "probabilities": {
+            "Колумбия": 61,
+            "Гана": 14,
+            "Ничья": 25
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "Virgin Bet",
+          "odds": {
+            "Колумбия": 1.16,
+            "Гана": 4.5
+          },
+          "probabilities": {
+            "Колумбия": 80,
+            "Гана": 20
+          },
+          "updatedAt": "2026-06-28T13:40:39Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "88": {
-      "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "available": true,
+      "eventId": "fb270a3dac2b682c861bd674a5ff4a04",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Unibet",
+          "odds": {
+            "Австралия": 3.4,
+            "Египет": 2.45,
+            "Ничья": 2.95
+          },
+          "probabilities": {
+            "Австралия": 28,
+            "Египет": 39,
+            "Ничья": 33
+          },
+          "updatedAt": "2026-06-28T13:41:02Z"
+        },
+        "draw_no_bet": {
+          "available": true,
+          "key": "draw_no_bet",
+          "label": "Победа без ничьей",
+          "sourceBookmaker": "BetRivers",
+          "odds": {
+            "Австралия": 2.17,
+            "Египет": 1.6
+          },
+          "probabilities": {
+            "Австралия": 42,
+            "Египет": 58
+          },
+          "updatedAt": "2026-06-28T13:40:13Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "89": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "90": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "91": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "92": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "93": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "94": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "95": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "96": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "97": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "98": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "99": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "100": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "101": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "102": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "103": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "104": {
       "available": false,
-      "market": "to_qualify",
-      "label": "Проход дальше",
-      "message": "Коэффициенты на проход пока недоступны"
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     }
   }
 }

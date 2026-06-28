@@ -201,26 +201,35 @@ function oddsRows(odds = {}, probabilities = {}) {
     </div>`).join('');
 }
 
-function oddsHtml(match) {
-  const market = getMatchOdds(match.id, oddsSnapshot);
-  const source = oddsSnapshot?.source || 'The Odds API';
-  const updated = formatOddsTime(oddsSnapshot?.updatedAt);
-  if (!market?.available) {
-    return `<section class="oddsBlock">
-      <h3>Фаворит</h3>
-      <p class="muted">${market?.message || 'Коэффициенты на проход пока недоступны'}</p>
-      <p class="muted sourceNote">Рынок: проход дальше · источник: ${source}${oddsSnapshot?.updatedAt ? ` · обновлено ${updated} ТБС` : ''}</p>
-      <p class="muted sourceNote">1X2 не показываем, чтобы не путать с проходом дальше.</p>
-    </section>`;
-  }
-  return `<section class="oddsBlock">
-    <h3>Фаворит</h3>
+function oddsMarketHtml(market) {
+  return `<div class="oddsMarket">
+    <h4>${market.label}</h4>
     <div class="oddsTable">
-      <div class="oddsHead"><span>Команда</span><span>Вероятность</span><span>Коэф.</span></div>
+      <div class="oddsHead"><span>Исход</span><span>Оценка</span><span>Коэф.</span></div>
       ${oddsRows(market.odds, market.probabilities)}
     </div>
-    <p class="muted sourceNote">Рынок: проход дальше · источник: ${source}${market.sourceBookmaker ? ` / ${market.sourceBookmaker}` : ''} · обновлено ${updated} ТБС</p>
-    <p class="muted sourceNote">Рыночная оценка, не рекомендация. Вероятности нормализованы из коэффициентов.</p>
+  </div>`;
+}
+
+function oddsHtml(match) {
+  const odds = getMatchOdds(match.id, oddsSnapshot);
+  const source = oddsSnapshot?.source || 'The Odds API';
+  const updated = formatOddsTime(oddsSnapshot?.updatedAt);
+  if (!odds?.available) {
+    return `<section class="oddsBlock">
+      <h3>Коэффициенты</h3>
+      <p class="muted">${odds?.message || 'Коэффициенты пока недоступны'}</p>
+      <p class="muted sourceNote">Источник: ${source}${oddsSnapshot?.updatedAt ? ` · обновлено ${updated} ТБС` : ''}</p>
+    </section>`;
+  }
+  const markets = [odds.markets?.h2h_3_way, odds.markets?.draw_no_bet].filter(Boolean);
+  const bookmakers = [...new Set(markets.map((market) => market.sourceBookmaker).filter(Boolean))].join(', ');
+  return `<section class="oddsBlock">
+    <h3>Коэффициенты</h3>
+    ${markets.map(oddsMarketHtml).join('')}
+    <p class="muted sourceNote">Источник: ${source}${bookmakers ? ` / ${bookmakers}` : ''} · обновлено ${updated} ТБС</p>
+    <p class="muted sourceNote">Важно: это не рынок прохода дальше. 90 минут и «победа без ничьей» не равны проходу после овертайма/пенальти.</p>
+    <p class="muted sourceNote">Оценки нормализованы из коэффициентов и не являются рекомендацией.</p>
   </section>`;
 }
 

@@ -11,12 +11,13 @@ export function normalizeProbabilities(odds = {}) {
 }
 
 export function getMatchOdds(matchId, snapshot) {
-  const market = snapshot?.markets?.[String(matchId)];
-  if (!market || market.available === false) return market || null;
-  if (market.market !== 'to_qualify') return { ...market, available: false, message: 'Коэффициенты на проход пока недоступны' };
-  const odds = market.odds || {};
-  const probabilities = market.probabilities || normalizeProbabilities(odds);
-  return { ...market, probabilities };
+  const item = snapshot?.markets?.[String(matchId)];
+  if (!item || item.available === false) return item || null;
+  const markets = Object.fromEntries(Object.entries(item.markets || {}).map(([key, market]) => [key, {
+    ...market,
+    probabilities: market.probabilities || normalizeProbabilities(market.odds),
+  }]));
+  return { ...item, markets };
 }
 
 export function formatOddsTime(iso) {
