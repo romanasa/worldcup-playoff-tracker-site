@@ -13,11 +13,17 @@
       <h1>Трекер плей-офф</h1>
       <p class="muted">Сетка и счёт обновляются автоматически. Время показано по Тбилиси.</p>
     </div>
-    <section class="panel stats" id="stats"></section>
   </header>
 
   <main>
+    <section class="homeGrid" id="homeSummary" aria-live="polite"></section>
+    <p class="syncLine" id="syncLine"></p>
+
     <section class="toolbar panel">
+      <div class="viewTabs" role="tablist" aria-label="Вид">
+        <button id="bracketViewBtn" class="active" type="button">Сетка</button>
+        <button id="scheduleViewBtn" type="button">Расписание</button>
+      </div>
       <label>Фильтр
         <select id="statusFilter">
           <option value="all">Все матчи</option>
@@ -31,6 +37,7 @@
     </section>
 
     <section id="bracket" class="bracket" aria-live="polite"></section>
+    <section id="schedule" class="schedule hidden" aria-live="polite"></section>
   </main>
 
   <dialog id="matchDialog" class="matchDialog">

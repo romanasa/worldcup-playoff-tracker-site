@@ -163,6 +163,43 @@ export function formatTbilisiTime(iso) {
   }).format(new Date(iso));
 }
 
+function tbilisiDateKey(date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tbilisi',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function formatCountdown(ms) {
+  if (ms <= 0) return 'начинается сейчас';
+  const totalMinutes = Math.round(ms / 60_000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  if (days > 0) return `через ${days} д ${hours} ч`;
+  if (hours > 0) return `через ${hours} ч${minutes ? ` ${minutes} мин` : ''}`;
+  return `через ${minutes} мин`;
+}
+
+export function getHomeSummary(resolved, now = new Date()) {
+  const matches = [...resolved.matches].sort((a, b) => new Date(a.kickoffUtc) - new Date(b.kickoffUtc));
+  const nowTime = now.getTime();
+  const todayKey = tbilisiDateKey(now);
+  const live = matches.filter((m) => m.status?.state === 'in');
+  const upcoming = matches.filter((m) => !m.winner && new Date(m.kickoffUtc).getTime() >= nowTime);
+  const next = live[0] || upcoming[0] || null;
+  const today = matches.filter((m) => tbilisiDateKey(new Date(m.kickoffUtc)) === todayKey);
+  return {
+    live,
+    today,
+    next,
+    countdown: next ? formatCountdown(new Date(next.kickoffUtc).getTime() - nowTime) : '',
+    primary: live[0] ? { type: 'live', match: live[0] } : next ? { type: 'next', match: next } : { type: 'done', match: matches.at(-1) || null },
+  };
+}
+
 export function applyEspnScoreboard(state, events, matchMap = MATCHES) {
   let next = clone(state);
   const byEspn = new Map(matchMap.map((m) => [String(m.espnId), m]));

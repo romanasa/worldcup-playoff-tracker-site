@@ -1,5 +1,5 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getProgress, getTeams, resolveBracket } from './bracket.js';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getHomeSummary, getProgress, getTeams, resolveBracket } from './bracket.js';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -9,23 +9,13 @@ const $ = (id) => document.getElementById(id);
 let state = loadState();
 let liveStatus = { text: 'Live-счёт: ещё не обновлялся', ok: true };
 let refreshTimer = null;
+let currentView = 'bracket';
 
 function loadState() {
   try { return { ...createInitialState(), ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; }
   catch { return createInitialState(); }
 }
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-
-function renderStats(resolved) {
-  const p = getProgress(resolved);
-  $('stats').innerHTML = `<div class="statGrid">
-    <div class="stat"><b>${p.completed}/${p.total}</b><span>матчей завершено</span></div>
-    <div class="stat"><b>${p.percent}%</b><span>прогресс</span></div>
-    <div class="stat"><b>${p.champion || '—'}</b><span>чемпион</span></div>
-    <div class="stat"><b>${p.finalists.join(' × ')}</b><span>потенциальный финал</span></div>
-  </div>
-  <p class="live ${liveStatus.ok ? '' : 'error'}">${liveStatus.text}</p>`;
-}
 
 function scoreValue(match, side) { return match.score?.[side] ?? ''; }
 function penaltyValue(match, side) { return side === 'a' ? match.score?.penA : match.score?.penB; }
@@ -61,19 +51,65 @@ function statusLine(match) {
   return parts.join(' · ');
 }
 
+function matchTitle(match) { return match.final ? 'Финал' : match.bronze ? '3-е место' : `Матч ${match.id}`; }
+function roundLabel(match) { return ROUNDS.find((round) => round.key === match.round)?.label || ''; }
+function teamsText(match) { return `${match.teamA.name} — ${match.teamB.name}`; }
+function formatScore(match) {
+  if (!match.score) return '— : —';
+  const pens = match.score.penA != null ? ` пен. ${match.score.penA}:${match.score.penB}` : '';
+  return `${match.score.a}:${match.score.b}${pens}`;
+}
+function shortTime(iso) {
+  return new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+}
+function dateLabel(iso) {
+  return new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(iso));
+}
+function dateKey(iso) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tbilisi', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
+}
+
 function matchCard(match) {
-  const title = match.final ? 'Финал' : match.bronze ? '3-е место' : `Матч ${match.id}`;
   return `<article class="match ${match.winner ? 'completed' : ''} ${match.final ? 'final' : ''} status-${match.status?.badge || 'SCHEDULED'}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
-    <div class="meta"><strong>${title}</strong><span>${formatTbilisiTime(match.kickoffUtc)} ТБС</span></div>
+    <div class="meta"><strong>${matchTitle(match)}</strong><span>${formatTbilisiTime(match.kickoffUtc)} ТБС</span></div>
     <div class="meta statusMeta">${statusLine(match)}</div>
     ${teamRow(match, 'a')}${teamRow(match, 'b')}
     <div class="meta"><span>${match.venue}</span>${match.winner ? `<span>✓ ${match.winner}</span>` : '<span>ожидает'}</div>
   </article>`;
 }
 
-function render() {
-  const resolved = resolveBracket(state);
-  renderStats(resolved);
+function scheduleRow(match, compact = false) {
+  return `<article class="scheduleRow ${match.status?.state === 'in' ? 'liveNow' : ''}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
+    <time>${shortTime(match.kickoffUtc)}</time>
+    <div><strong>${teamsText(match)}</strong>${compact ? '' : `<span>${matchTitle(match)} · ${match.venue}</span>`}</div>
+    <div class="scheduleStatus">${statusLine(match)}</div>
+  </article>`;
+}
+
+function renderHome(resolved) {
+  const summary = getHomeSummary(resolved);
+  const progress = getProgress(resolved);
+  const primary = summary.primary.match;
+  const isLive = summary.primary.type === 'live';
+  const todayList = (summary.today.length ? summary.today : resolved.matches.filter((m) => !m.winner).slice(0, 3)).slice(0, 4);
+  $('homeSummary').innerHTML = `
+    <article class="panel nowCard ${isLive ? 'liveNow' : ''}">
+      <p class="eyebrow">${isLive ? 'Сейчас идёт' : 'Следующий матч'}</p>
+      ${primary ? `<h2>${teamsText(primary)}</h2>
+      <div class="heroScore">${formatScore(primary)}</div>
+      <p>${statusLine(primary)}</p>
+      <p class="muted">${dateLabel(primary.kickoffUtc)}, ${shortTime(primary.kickoffUtc)} ТБС · ${summary.countdown}</p>
+      <p class="muted">${primary.venue}</p>` : '<h2>Турнир завершён</h2>'}
+    </article>
+    <article class="panel todayCard">
+      <p class="eyebrow">${summary.today.length ? 'Сегодня' : 'Ближайшие'}</p>
+      <div class="todayList">${todayList.map((m) => scheduleRow(m, true)).join('') || '<p class="muted">Матчей нет</p>'}</div>
+    </article>`;
+  $('syncLine').className = `syncLine ${liveStatus.ok ? '' : 'error'}`;
+  $('syncLine').textContent = `${liveStatus.text} · ${progress.completed}/${progress.total} завершено`;
+}
+
+function renderBracket(resolved) {
   const html = ROUNDS.map((round) => {
     const cards = resolved.matches.filter((m) => round.ids.includes(m.id)).filter(visibleMatch).map(matchCard).join('');
     return `<section class="round"><h2>${round.label}</h2>${cards || '<div class="empty">Нет матчей по фильтру</div>'}</section>`;
@@ -81,14 +117,29 @@ function render() {
   $('bracket').innerHTML = html;
 }
 
-function roundLabel(match) {
-  return ROUNDS.find((round) => round.key === match.round)?.label || '';
+function renderSchedule(resolved) {
+  const groups = new Map();
+  for (const match of resolved.matches.filter(visibleMatch)) {
+    const key = dateKey(match.kickoffUtc);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(match);
+  }
+  $('schedule').innerHTML = [...groups.values()].map((matches) => `
+    <section class="scheduleDay">
+      <h2>${dateLabel(matches[0].kickoffUtc)}</h2>
+      ${matches.map((m) => scheduleRow(m)).join('')}
+    </section>`).join('') || '<div class="empty">Нет матчей по фильтру</div>';
 }
 
-function formatScore(match) {
-  if (!match.score) return '— : —';
-  const pens = match.score.penA != null ? ` пен. ${match.score.penA}:${match.score.penB}` : '';
-  return `${match.score.a}:${match.score.b}${pens}`;
+function render() {
+  const resolved = resolveBracket(state);
+  renderHome(resolved);
+  renderBracket(resolved);
+  renderSchedule(resolved);
+  $('bracket').classList.toggle('hidden', currentView !== 'bracket');
+  $('schedule').classList.toggle('hidden', currentView !== 'schedule');
+  $('bracketViewBtn').classList.toggle('active', currentView === 'bracket');
+  $('scheduleViewBtn').classList.toggle('active', currentView === 'schedule');
 }
 
 function showMatchDetails(matchId) {
@@ -101,7 +152,7 @@ function showMatchDetails(matchId) {
   $('matchDetails').innerHTML = `
     <button class="closeBtn" value="cancel" aria-label="Закрыть">×</button>
     <p class="eyebrow">M${match.id} · ${roundLabel(match)}</p>
-    <h2>${match.teamA.name} — ${match.teamB.name}</h2>
+    <h2>${teamsText(match)}</h2>
     <div class="detailScore">${formatScore(match)}</div>
     <div class="detailStatus">${statusLine(match)}</div>
     <dl class="detailGrid">
@@ -115,21 +166,25 @@ function showMatchDetails(matchId) {
   $('matchDialog').showModal();
 }
 
+function openMatchFromEvent(event) {
+  const card = event.target.closest('[data-match-id]');
+  if (card) showMatchDetails(Number(card.dataset.matchId));
+}
+
 function initFilters() {
   $('teamFilter').innerHTML = '<option value="all">Все команды</option>' + getTeams().map((t) => `<option value="${t}">${t}</option>`).join('');
   $('statusFilter').addEventListener('change', render);
   $('teamFilter').addEventListener('change', render);
-  $('bracket').addEventListener('click', (event) => {
-    const card = event.target.closest('[data-match-id]');
-    if (card) showMatchDetails(Number(card.dataset.matchId));
+  $('bracketViewBtn').addEventListener('click', () => { currentView = 'bracket'; render(); });
+  $('scheduleViewBtn').addEventListener('click', () => { currentView = 'schedule'; render(); });
+  document.addEventListener('click', (event) => {
+    if (event.target.id === 'matchDialog' || event.target.closest('.closeBtn')) $('matchDialog').close();
+    else openMatchFromEvent(event);
   });
-  $('bracket').addEventListener('keydown', (event) => {
+  document.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     const card = event.target.closest('[data-match-id]');
     if (card) { event.preventDefault(); showMatchDetails(Number(card.dataset.matchId)); }
-  });
-  $('matchDialog').addEventListener('click', (event) => {
-    if (event.target.id === 'matchDialog' || event.target.closest('.closeBtn')) $('matchDialog').close();
   });
 }
 
@@ -150,7 +205,7 @@ async function refreshScores() {
     saveState();
     const updated = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
     const nextInterval = scheduleNextRefresh();
-    liveStatus = { ok: true, text: `Live-счёт ESPN обновлён в ${updated} Тбилиси · автообновление раз в ${nextInterval / 1000} сек.` };
+    liveStatus = { ok: true, text: `ESPN обновлён ${updated} ТБС · авто ${nextInterval / 1000} сек.` };
   } catch (error) {
     scheduleNextRefresh();
     liveStatus = { ok: false, text: `Live-счёт недоступен: ${error.message}` };
