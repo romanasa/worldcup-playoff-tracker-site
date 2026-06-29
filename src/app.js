@@ -7,6 +7,7 @@ const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
 const LIVE_REFRESH_MS = 15_000;
 const ODDS_REFRESH_MS = 5 * 60_000;
+const ESPN_SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary';
 const $ = (id) => document.getElementById(id);
 
 let state = loadState();
@@ -15,6 +16,7 @@ let refreshTimer = null;
 let currentView = 'bracket';
 const teamContextCache = new Map();
 let oddsSnapshot = null;
+const matchSummaryCache = new Map();
 
 function loadState() {
   try { return { ...createInitialState(), ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; }
@@ -244,6 +246,52 @@ async function loadTeamContext(match) {
   return loaded;
 }
 
+function liveEventIcon(type = '') {
+  if (type.includes('goal')) return '⚽';
+  if (type.includes('yellow-card')) return '🟨';
+  if (type.includes('red-card')) return '🟥';
+  if (type.includes('substitution')) return '🔁';
+  if (type.includes('halftime')) return 'HT';
+  if (type.includes('kickoff')) return '▶';
+  return '•';
+}
+
+function eventText(event) {
+  return event.shortText || event.text || event.type?.text || 'Событие';
+}
+
+function liveEventsHtml(events = []) {
+  if (!events.length) {
+    return `<section class="liveEvents"><h3>Live-события</h3><p class="muted">ESPN пока не отдаёт события по этому матчу.</p></section>`;
+  }
+  return `<section class="liveEvents">
+    <h3>Live-события</h3>
+    <ol class="eventList">${events.slice(0, 8).map((event) => `
+      <li class="eventItem ${event.scoringPlay ? 'scoring' : ''}">
+        <span class="eventMinute">${event.clock?.displayValue || '—'}</span>
+        <span class="eventIcon">${liveEventIcon(event.type?.type || event.type?.text || '')}</span>
+        <span><b>${eventText(event)}</b>${event.team?.displayName ? `<small>${event.team.displayName}</small>` : ''}</span>
+      </li>`).join('')}
+    </ol>
+    <p class="muted sourceNote">Источник: ESPN match summary · последние ключевые события сверху</p>
+  </section>`;
+}
+
+async function loadMatchSummary(match) {
+  if (!match.espnId) return [];
+  const cached = matchSummaryCache.get(match.espnId);
+  const now = Date.now();
+  if (cached && now - cached.loadedAt < 15_000) return cached.events;
+  const response = await fetch(`${ESPN_SUMMARY_URL}?event=${match.espnId}&_=${now}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  const events = (data.keyEvents || [])
+    .slice()
+    .sort((a, b) => (new Date(b.wallclock || 0)) - (new Date(a.wallclock || 0)));
+  matchSummaryCache.set(match.espnId, { loadedAt: now, events });
+  return events;
+}
+
 async function showMatchDetails(matchId) {
   const resolved = resolveBracket(state);
   const match = resolved.matches.find((item) => item.id === matchId);
@@ -265,9 +313,16 @@ async function showMatchDetails(matchId) {
       <dt>Статус API</dt><dd>${match.status?.detail || match.status?.badge || '—'}</dd>
     </dl>
     ${oddsHtml(match)}
+    <div id="liveEventsBlock" class="contextLoading">Загружаю live-события…</div>
     <div id="teamContextBlock" class="contextLoading">Загружаю форму команд…</div>
   `;
   $('matchDialog').showModal();
+  try {
+    const events = await loadMatchSummary(match);
+    $('liveEventsBlock').outerHTML = liveEventsHtml(events);
+  } catch (error) {
+    $('liveEventsBlock').outerHTML = `<section class="liveEvents"><h3>Live-события</h3><p class="muted">Не удалось загрузить события ESPN: ${error.message}</p></section>`;
+  }
   try {
     const [a, b] = await loadTeamContext(match);
     $('teamContextBlock').outerHTML = contextHtml(a, b);
