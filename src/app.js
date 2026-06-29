@@ -7,12 +7,14 @@ const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
 const LIVE_REFRESH_MS = 15_000;
 const ODDS_REFRESH_MS = 5 * 60_000;
+const LIVE_ODDS_REFRESH_MS = 60_000;
 const ESPN_SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary';
 const $ = (id) => document.getElementById(id);
 
 let state = loadState();
 let liveStatus = { text: 'Live-счёт: ещё не обновлялся', ok: true };
 let refreshTimer = null;
+let oddsTimer = null;
 let currentView = 'bracket';
 const teamContextCache = new Map();
 let oddsSnapshot = null;
@@ -379,8 +381,11 @@ async function refreshOddsSnapshot() {
 }
 
 function scheduleOddsRefresh() {
-  refreshOddsSnapshot();
-  setInterval(refreshOddsSnapshot, ODDS_REFRESH_MS);
+  clearInterval(oddsTimer);
+  const hasLive = resolveBracket(state).matches.some((m) => m.status?.state === 'in');
+  const interval = hasLive ? LIVE_ODDS_REFRESH_MS : ODDS_REFRESH_MS;
+  oddsTimer = setInterval(refreshOddsSnapshot, interval);
+  return interval;
 }
 
 async function refreshScores() {
@@ -392,6 +397,7 @@ async function refreshScores() {
     saveState();
     const updated = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
     const nextInterval = scheduleNextRefresh();
+    scheduleOddsRefresh();
     liveStatus = { ok: true, text: `ESPN обновлён ${updated} ТБС · авто ${nextInterval / 1000} сек.` };
   } catch (error) {
     scheduleNextRefresh();
@@ -400,4 +406,4 @@ async function refreshScores() {
   render();
 }
 
-initFilters(); render(); scheduleOddsRefresh(); refreshScores();
+initFilters(); render(); refreshOddsSnapshot(); scheduleOddsRefresh(); refreshScores();
