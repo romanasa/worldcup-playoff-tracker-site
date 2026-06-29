@@ -312,8 +312,8 @@ async function showMatchDetails(matchId) {
       <dt>Источник</dt><dd>${match.status?.source || 'schedule'} · обновлено ${updated}</dd>
       <dt>Статус API</dt><dd>${match.status?.detail || match.status?.badge || '—'}</dd>
     </dl>
-    ${oddsHtml(match)}
     <div id="liveEventsBlock" class="contextLoading">Загружаю live-события…</div>
+    ${oddsHtml(match)}
     <div id="teamContextBlock" class="contextLoading">Загружаю форму команд…</div>
   `;
   $('matchDialog').showModal();
