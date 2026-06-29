@@ -140,18 +140,57 @@ function marketSnapshot(event, match, marketKey, label, teamMap) {
   };
 }
 
-async function fetchOdds() {
-  if (!API_KEY) throw new Error('Set THE_ODDS_API_KEY or ODDS_API_KEY');
+function mergeEvents(target, source) {
+  for (const event of source) {
+    const key = event.id || eventKey(event.home_team, event.away_team);
+    const existing = target.get(key);
+    if (!existing) {
+      target.set(key, event);
+      continue;
+    }
+    const byBookmaker = new Map((existing.bookmakers || []).map((bookmaker) => [bookmaker.key, bookmaker]));
+    for (const bookmaker of event.bookmakers || []) {
+      const current = byBookmaker.get(bookmaker.key);
+      if (!current) {
+        (existing.bookmakers ||= []).push(bookmaker);
+        byBookmaker.set(bookmaker.key, bookmaker);
+        continue;
+      }
+      const marketKeys = new Set((current.markets || []).map((market) => market.key));
+      for (const market of bookmaker.markets || []) {
+        if (!marketKeys.has(market.key)) (current.markets ||= []).push(market);
+      }
+    }
+  }
+}
+
+async function fetchOddsMarket(market) {
   const url = new URL(`${API_BASE}/sports/${SPORT_KEY}/odds`);
   url.searchParams.set('apiKey', API_KEY);
   url.searchParams.set('regions', REGIONS);
-  url.searchParams.set('markets', MARKETS);
+  url.searchParams.set('markets', market);
   url.searchParams.set('oddsFormat', 'decimal');
   url.searchParams.set('dateFormat', 'iso');
 
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`The Odds API HTTP ${response.status}: ${await response.text()}`);
+  if (!response.ok) {
+    const body = await response.text();
+    if (response.status === 422 && body.includes('INVALID_MARKET')) {
+      console.warn(`Skipping unsupported Odds API market: ${market}`);
+      return [];
+    }
+    throw new Error(`The Odds API HTTP ${response.status}: ${body}`);
+  }
   return response.json();
+}
+
+async function fetchOdds() {
+  if (!API_KEY) throw new Error('Set THE_ODDS_API_KEY or ODDS_API_KEY');
+  const merged = new Map();
+  for (const market of MARKETS.split(',').map((item) => item.trim()).filter(Boolean)) {
+    mergeEvents(merged, await fetchOddsMarket(market));
+  }
+  return [...merged.values()];
 }
 
 async function main() {
