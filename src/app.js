@@ -128,7 +128,11 @@ function renderBracket(resolved) {
 
 function renderSchedule(resolved) {
   const groups = new Map();
-  for (const match of resolved.matches.filter(visibleMatch)) {
+  const sorted = resolved.matches
+    .filter(visibleMatch)
+    .slice()
+    .sort((a, b) => new Date(a.kickoffUtc) - new Date(b.kickoffUtc));
+  for (const match of sorted) {
     const key = dateKey(match.kickoffUtc);
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(match);
@@ -204,6 +208,31 @@ function oddsRows(odds = {}, probabilities = {}) {
       <b>${probabilities[team] ?? '—'}%</b>
       <strong>${Number(price).toFixed(2)}</strong>
     </div>`).join('');
+}
+
+function favoriteFromMarket(market) {
+  if (!market?.odds) return null;
+  return Object.entries(market.odds)
+    .filter(([team, price]) => team !== 'Ничья' && Number.isFinite(Number(price)))
+    .sort((a, b) => Number(a[1]) - Number(b[1]))[0] || null;
+}
+
+function favoriteSummaryHtml(match) {
+  const odds = getMatchOdds(match.id, oddsSnapshot);
+  const market = odds?.markets?.h2h_3_way || odds?.markets?.draw_no_bet;
+  const favorite = favoriteFromMarket(market);
+  if (!odds?.available || !market || !favorite) {
+    return `<section class="favoriteStrip muted"><b>Фаворит</b><span>коэффициентов пока нет</span></section>`;
+  }
+  const [team, price] = favorite;
+  const probability = market.probabilities?.[team];
+  const updated = formatOddsTime(oddsSnapshot?.updatedAt);
+  return `<section class="favoriteStrip">
+    <b>Фаворит 90 мин</b>
+    <strong>${team}</strong>
+    <span>${probability ? `${probability}% · ` : ''}${Number(price).toFixed(2)}</span>
+    <small>обновлено ${updated} ТБС</small>
+  </section>`;
 }
 
 function oddsMarketHtml(market) {
@@ -356,13 +385,12 @@ async function showMatchDetails(matchId) {
     <h2>${teamsText(match)}</h2>
     <div class="detailScore">${formatScore(match)}</div>
     <div class="detailStatus">${statusLine(match)}</div>
-    <dl class="detailGrid">
+    ${favoriteSummaryHtml(match)}
+    <dl class="detailGrid compactDetails">
       <dt>Время</dt><dd>${formatTbilisiTime(match.kickoffUtc)} ТБС</dd>
       <dt>Стадион</dt><dd>${match.venue}</dd>
-      <dt>Победитель</dt><dd>${match.winner || (match.status?.state === 'in' && match.score ? `если закончится сейчас: ${Number(match.score.a) > Number(match.score.b) ? match.teamA.name : Number(match.score.b) > Number(match.score.a) ? match.teamB.name : 'ничья / овертайм'}` : 'ещё не определён')}</dd>
-      <dt>Источник</dt><dd>${match.status?.source || 'schedule'} · обновлено ${updated}</dd>
-      <dt>Статус API</dt><dd>${match.status?.detail || match.status?.badge || '—'}</dd>
     </dl>
+    <p class="muted sourceNote">Счёт: ${match.status?.source || 'schedule'} · обновлено ${updated}${match.status?.detail ? ` · ${match.status.detail}` : ''}</p>
     <div id="liveEventsBlock" class="contextLoading">Загружаю live-события…</div>
     ${oddsHtml(match)}
     <div id="teamContextBlock" class="contextLoading">Загружаю форму команд…</div>
