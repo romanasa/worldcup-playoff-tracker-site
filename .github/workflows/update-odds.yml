@@ -23,11 +23,20 @@ jobs:
           node-version: '22'
 
       - name: Refresh odds from The Odds API
+        id: refresh
         env:
           THE_ODDS_API_KEY: ${{ secrets.THE_ODDS_API_KEY }}
-        run: node scripts/update-odds.mjs
+        run: |
+          if [ -z "$THE_ODDS_API_KEY" ]; then
+            echo "THE_ODDS_API_KEY secret is not set; skipping odds refresh"
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node scripts/update-odds.mjs
+          echo "updated=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit updated snapshot
+        if: steps.refresh.outputs.updated == 'true'
         run: |
           if git diff --quiet -- src/odds.json; then
             echo "Odds snapshot unchanged"
