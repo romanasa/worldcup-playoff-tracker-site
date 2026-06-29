@@ -6,6 +6,7 @@ import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
 const LIVE_REFRESH_MS = 15_000;
+const ODDS_REFRESH_MS = 5 * 60_000;
 const $ = (id) => document.getElementById(id);
 
 let state = loadState();
@@ -317,6 +318,16 @@ async function loadOddsSnapshot() {
   }
 }
 
+async function refreshOddsSnapshot() {
+  await loadOddsSnapshot();
+  render();
+}
+
+function scheduleOddsRefresh() {
+  refreshOddsSnapshot();
+  setInterval(refreshOddsSnapshot, ODDS_REFRESH_MS);
+}
+
 async function refreshScores() {
   try {
     const response = await fetch(`${SCOREBOARD_URL}&_=${Date.now()}`, { cache: 'no-store' });
@@ -334,4 +345,4 @@ async function refreshScores() {
   render();
 }
 
-initFilters(); render(); loadOddsSnapshot(); refreshScores();
+initFilters(); render(); scheduleOddsRefresh(); refreshScores();

@@ -1,0 +1,49 @@
+name: Update odds snapshot
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-odds
+  cancel-in-progress: true
+
+jobs:
+  update-odds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Refresh odds from The Odds API
+        id: refresh
+        env:
+          THE_ODDS_API_KEY: ${{ secrets.THE_ODDS_API_KEY }}
+        run: |
+          if [ -z "$THE_ODDS_API_KEY" ]; then
+            echo "THE_ODDS_API_KEY secret is not set; skipping odds refresh"
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node scripts/update-odds.mjs
+          echo "updated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit updated snapshot
+        if: steps.refresh.outputs.updated == 'true'
+        run: |
+          if git diff --quiet -- src/odds.json; then
+            echo "Odds snapshot unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/odds.json
+          git commit -m "chore: update odds snapshot"
+          git push
