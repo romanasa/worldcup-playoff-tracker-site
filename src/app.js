@@ -248,34 +248,77 @@ async function loadTeamContext(match) {
   return loaded;
 }
 
+function escapeHtml(value = '') {
+  return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+}
+
+function eventType(event) { return event.type?.type || event.type?.text || ''; }
+function isServiceEvent(event) { return ['start-delay', 'end-delay', 'kickoff'].includes(eventType(event)); }
+function isImportantEvent(event) {
+  const type = eventType(event);
+  return type.includes('goal') || ['yellow-card', 'red-card', 'substitution', 'halftime'].includes(type);
+}
+
+function eventTeamName(event, match) {
+  const name = event.team?.displayName;
+  if (!name) return '';
+  if (name === match.teamA.espnName) return match.teamA.name;
+  if (name === match.teamB.espnName) return match.teamB.name;
+  return name;
+}
+
 function liveEventIcon(type = '') {
   if (type.includes('goal')) return '⚽';
   if (type.includes('yellow-card')) return '🟨';
   if (type.includes('red-card')) return '🟥';
   if (type.includes('substitution')) return '🔁';
   if (type.includes('halftime')) return 'HT';
-  if (type.includes('kickoff')) return '▶';
   return '•';
 }
 
+function substitutionText(event) {
+  const [incoming, outgoing] = (event.participants || []).map((item) => item.athlete?.displayName).filter(Boolean);
+  if (incoming && outgoing) return `${incoming} вместо ${outgoing}`;
+  if (incoming) return `${incoming} — замена`;
+  const match = (event.text || '').match(/Substitution, .*?\. (.*?) replaces (.*?)(?:\.| because|$)/);
+  if (match) return `${match[1]} вместо ${match[2]}`;
+  return 'Замена';
+}
+
+function goalText(event) {
+  const scorer = event.participants?.[0]?.athlete?.displayName || (event.shortText || '').replace(/ Goal.*/, '');
+  const header = /header/i.test(event.text || event.shortText || '') || eventType(event).includes('header') ? ', головой' : '';
+  return `${scorer} — гол${header}`;
+}
+
 function eventText(event) {
+  const type = eventType(event);
+  if (type === 'substitution') return substitutionText(event);
+  if (type.includes('goal')) return goalText(event);
+  if (type === 'yellow-card') return `${event.participants?.[0]?.athlete?.displayName || event.shortText?.replace(/ Yellow Card.*/, '') || 'Игрок'} — жёлтая карточка`;
+  if (type === 'red-card') return `${event.participants?.[0]?.athlete?.displayName || event.shortText?.replace(/ Red Card.*/, '') || 'Игрок'} — красная карточка`;
+  if (type === 'halftime') return 'Перерыв';
   return event.shortText || event.text || event.type?.text || 'Событие';
 }
 
-function liveEventsHtml(events = []) {
-  if (!events.length) {
-    return `<section class="liveEvents"><h3>Live-события</h3><p class="muted">ESPN пока не отдаёт события по этому матчу.</p></section>`;
+function liveEventsHtml(events = [], match) {
+  const visibleEvents = events.filter(isImportantEvent).filter((event) => !isServiceEvent(event));
+  if (!visibleEvents.length) {
+    return `<section class="liveEvents"><h3>Live-события</h3><p class="muted">ESPN пока не отдаёт важные события по этому матчу.</p></section>`;
   }
   return `<section class="liveEvents">
     <h3>Live-события</h3>
-    <ol class="eventList">${events.slice(0, 8).map((event) => `
+    <ol class="eventList">${visibleEvents.slice(0, 12).map((event) => {
+      const team = eventTeamName(event, match);
+      return `
       <li class="eventItem ${event.scoringPlay ? 'scoring' : ''}">
-        <span class="eventMinute">${event.clock?.displayValue || '—'}</span>
-        <span class="eventIcon">${liveEventIcon(event.type?.type || event.type?.text || '')}</span>
-        <span><b>${eventText(event)}</b>${event.team?.displayName ? `<small>${event.team.displayName}</small>` : ''}</span>
-      </li>`).join('')}
+        <span class="eventMinute">${escapeHtml(event.clock?.displayValue || '—')}</span>
+        <span class="eventIcon">${liveEventIcon(eventType(event))}</span>
+        <span><b>${escapeHtml(eventText(event))}</b>${team ? `<small>${escapeHtml(team)}</small>` : ''}</span>
+      </li>`;
+    }).join('')}
     </ol>
-    <p class="muted sourceNote">Источник: ESPN match summary · последние ключевые события сверху</p>
+    <p class="muted sourceNote">Источник: ESPN match summary · служебные паузы скрыты</p>
   </section>`;
 }
 
@@ -287,8 +330,14 @@ async function loadMatchSummary(match) {
   const response = await fetch(`${ESPN_SUMMARY_URL}?event=${match.espnId}&_=${now}`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const data = await response.json();
-  const events = (data.keyEvents || [])
-    .slice()
+  const byId = new Map();
+  for (const event of data.keyEvents || []) byId.set(event.id || `${event.clock?.displayValue}-${event.text}`, event);
+  for (const item of data.commentary || []) {
+    const play = item.play;
+    if (!play || !isImportantEvent(play)) continue;
+    byId.set(play.id || `${item.time?.displayValue}-${item.text}`, play);
+  }
+  const events = [...byId.values()]
     .sort((a, b) => (new Date(b.wallclock || 0)) - (new Date(a.wallclock || 0)));
   matchSummaryCache.set(match.espnId, { loadedAt: now, events });
   return events;
@@ -321,7 +370,7 @@ async function showMatchDetails(matchId) {
   $('matchDialog').showModal();
   try {
     const events = await loadMatchSummary(match);
-    $('liveEventsBlock').outerHTML = liveEventsHtml(events);
+    $('liveEventsBlock').outerHTML = liveEventsHtml(events, match);
   } catch (error) {
     $('liveEventsBlock').outerHTML = `<section class="liveEvents"><h3>Live-события</h3><p class="muted">Не удалось загрузить события ESPN: ${error.message}</p></section>`;
   }
