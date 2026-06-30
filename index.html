@@ -21,24 +21,13 @@
 
     <section class="toolbar panel">
       <div class="viewTabs" role="tablist" aria-label="Вид">
-        <button id="bracketViewBtn" class="active" type="button">Сетка</button>
-        <button id="schemeViewBtn" type="button">Схема</button>
+        <button id="schemeViewBtn" class="active" type="button">Схема</button>
         <button id="scheduleViewBtn" type="button">Расписание</button>
       </div>
-      <label>Фильтр
-        <select id="statusFilter">
-          <option value="all">Все матчи</option>
-          <option value="upcoming">Не завершены</option>
-          <option value="completed">Завершены</option>
-        </select>
-      </label>
-      <label>Команда
-        <select id="teamFilter"><option value="all">Все команды</option></select>
-      </label>
     </section>
 
-    <section id="bracket" class="bracket" aria-live="polite"></section>
-    <section id="scheme" class="scheme hidden" aria-live="polite"></section>
+    <section id="bracket" class="bracket hidden" aria-live="polite"></section>
+    <section id="scheme" class="scheme" aria-live="polite"></section>
     <section id="schedule" class="schedule hidden" aria-live="polite"></section>
   </main>
 
@@ -46,6 +35,6 @@
     <article id="matchDetails" class="matchDetails"></article>
   </dialog>
 
-  <script type="module" src="src/app.js?v=scheme-path1"></script>
+  <script type="module" src="src/app.js?v=no-filters1"></script>
 </body>
 </html>

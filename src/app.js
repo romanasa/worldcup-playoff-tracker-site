@@ -1,5 +1,5 @@
 import { ROUNDS, SCOREBOARD_URL } from './data.js';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, getTeams, resolveBracket } from './bracket.js';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js';
 import { formatOddsTime, getMatchOdds, ODDS_SNAPSHOT_URL } from './odds.js?v=real-odds2';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 
@@ -15,7 +15,7 @@ let state = loadState();
 let liveStatus = { text: 'Live-счёт: ещё не обновлялся', ok: true };
 let refreshTimer = null;
 let oddsTimer = null;
-let currentView = 'bracket';
+let currentView = 'scheme';
 const teamContextCache = new Map();
 let oddsSnapshot = null;
 const matchSummaryCache = new Map();
@@ -28,13 +28,7 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 
 function scoreValue(match, side) { return match.score?.[side] ?? ''; }
 function penaltyValue(match, side) { return side === 'a' ? match.score?.penA : match.score?.penB; }
-function hasTeam(match, name) { return [match.teamA.name, match.teamB.name, match.winner, match.loser].includes(name); }
 function visibleMatch(match) {
-  const status = $('statusFilter').value;
-  const team = $('teamFilter').value;
-  if (status === 'completed' && !match.winner) return false;
-  if (status === 'upcoming' && match.winner) return false;
-  if (team !== 'all' && !hasTeam(match, team)) return false;
   return true;
 }
 
@@ -178,7 +172,6 @@ function render() {
   $('bracket').classList.toggle('hidden', currentView !== 'bracket');
   $('scheme').classList.toggle('hidden', currentView !== 'scheme');
   $('schedule').classList.toggle('hidden', currentView !== 'schedule');
-  $('bracketViewBtn').classList.toggle('active', currentView === 'bracket');
   $('schemeViewBtn').classList.toggle('active', currentView === 'scheme');
   $('scheduleViewBtn').classList.toggle('active', currentView === 'schedule');
 }
@@ -419,10 +412,6 @@ function openMatchFromEvent(event) {
 }
 
 function initFilters() {
-  $('teamFilter').innerHTML = '<option value="all">Все команды</option>' + getTeams().map((t) => `<option value="${t}">${t}</option>`).join('');
-  $('statusFilter').addEventListener('change', render);
-  $('teamFilter').addEventListener('change', render);
-  $('bracketViewBtn').addEventListener('click', () => { currentView = 'bracket'; render(); });
   $('schemeViewBtn').addEventListener('click', () => { currentView = 'scheme'; render(); });
   $('scheduleViewBtn').addEventListener('click', () => { currentView = 'schedule'; render(); });
   document.addEventListener('click', (event) => {
