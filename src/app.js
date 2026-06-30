@@ -262,8 +262,6 @@ function oddsHtml(match) {
     <h3>Коэффициенты</h3>
     ${markets.map(oddsMarketHtml).join('')}
     <p class="muted sourceNote">Источник: ${source}${bookmakers ? ` / ${bookmakers}` : ''} · обновлено ${updated} ТБС</p>
-    <p class="muted sourceNote">Важно: это не рынок прохода дальше. 90 минут и «победа без ничьей» не равны проходу после овертайма/пенальти.</p>
-    <p class="muted sourceNote">Оценки нормализованы из коэффициентов и не являются рекомендацией.</p>
   </section>`;
 }
 
