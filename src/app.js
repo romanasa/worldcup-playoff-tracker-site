@@ -131,7 +131,12 @@ function renderSchedule(resolved) {
   const sorted = resolved.matches
     .filter(visibleMatch)
     .slice()
-    .sort((a, b) => new Date(a.kickoffUtc) - new Date(b.kickoffUtc));
+    .sort((a, b) => {
+      const aDone = a.winner || a.status?.state === 'post' ? 1 : 0;
+      const bDone = b.winner || b.status?.state === 'post' ? 1 : 0;
+      if (aDone !== bDone) return aDone - bDone;
+      return new Date(a.kickoffUtc) - new Date(b.kickoffUtc);
+    });
   for (const match of sorted) {
     const key = dateKey(match.kickoffUtc);
     if (!groups.has(key)) groups.set(key, []);
