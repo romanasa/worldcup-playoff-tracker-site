@@ -152,7 +152,7 @@ function renderSchedule(resolved) {
 function schemeNode(match) {
   const score = match.score ? `<span class="schemeScore">${formatScore(match)}</span>` : '';
   return `<article class="schemeMatch ${match.status?.state === 'in' ? 'liveNow' : ''} ${match.winner ? 'completed' : ''}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
-    <small>M${match.id} · ${shortTime(match.kickoffUtc)}</small>
+    <small>M${match.id} · ${formatTbilisiTime(match.kickoffUtc)} ТБС</small>
     <strong>${match.teamA.name}</strong>
     <strong>${match.teamB.name}</strong>
     ${score}
