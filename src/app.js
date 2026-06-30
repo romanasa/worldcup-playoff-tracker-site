@@ -1,4 +1,4 @@
-import { ROUNDS, SCOREBOARD_URL } from './data.js';
+import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js';
 import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js';
 import { formatOddsTime, getMatchOdds, ODDS_SNAPSHOT_URL } from './odds.js?v=real-odds2';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
@@ -176,25 +176,68 @@ function render() {
   $('scheduleViewBtn').classList.toggle('active', currentView === 'schedule');
 }
 
-function formPills(form = []) {
-  return form.length ? form.map((r) => `<span class="formPill result-${r}">${r}</span>`).join('') : '<span class="muted">нет данных</span>';
+const TEAM_NAME_BY_ESPN = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
+  .filter((team) => team?.type === 'team')
+  .map((team) => [team.espnName, team.name]));
+Object.entries({ Iraq: 'Ирак', Tunisia: 'Тунис', Scotland: 'Шотландия', Haiti: 'Гаити', Curaçao: 'Кюрасао' })
+  .forEach(([en, ru]) => TEAM_NAME_BY_ESPN.set(en, ru));
+
+function localTeamName(name) { return TEAM_NAME_BY_ESPN.get(name) || name; }
+
+function formPoints(form = []) {
+  return form.slice(0, 3).reduce((sum, item) => sum + (item === 'В' ? 3 : item === 'Н' ? 1 : 0), 0);
 }
 
-function recentList(context) {
-  if (!context?.recent?.length) return '<p class="muted">Нет данных ESPN по последним матчам</p>';
-  return `<ul class="recentList">${context.recent.slice(0, 3).map((m) => `<li><b>${m.outcome}</b> ${m.score} vs ${m.opponent}</li>`).join('')}</ul>`;
+function formStats(context) {
+  const recent = context?.recent?.slice(0, 3) || [];
+  return {
+    points: formPoints(context?.form),
+    goalsFor: recent.reduce((sum, match) => sum + (Number(match.ownScore) || 0), 0),
+    goalsAgainst: recent.reduce((sum, match) => sum + (Number(match.oppScore) || 0), 0),
+    wins: recent.filter((match) => match.outcome === 'В').length,
+  };
+}
+
+function formDots(form = []) {
+  const icons = { 'В': '🟢', 'Н': '⚪', 'П': '🔴' };
+  return form.slice(0, 3).map((r) => `<span class="formDot" title="${r}">${icons[r] || '•'}</span>`).join('') || '<span class="muted">нет данных</span>';
+}
+
+function compactRecent(context) {
+  if (!context?.recent?.length) return '<span class="muted">нет данных</span>';
+  return context.recent.slice(0, 3).map((match) => `${match.score} ${localTeamName(match.opponent)}`).join(' · ');
+}
+
+function formVerdict(a, b) {
+  const aStats = formStats(a);
+  const bStats = formStats(b);
+  const diff = aStats.points - bStats.points;
+  const leader = diff > 1 ? a : diff < -1 ? b : null;
+  if (!leader) return `Форма примерно равная · ${aStats.points}:${bStats.points} очков за 3 матча`;
+  const stats = leader === a ? aStats : bStats;
+  const streak = stats.wins === 3 ? ' · 3 победы подряд' : '';
+  return `${leader.team} лучше по последним матчам · ${stats.points}/9 очков${streak} · мячи ${stats.goalsFor}–${stats.goalsAgainst}`;
+}
+
+function compactFormRow(context) {
+  const stats = formStats(context);
+  return `<div class="compactFormRow">
+    <strong>${context.team}</strong>
+    <span class="formDots">${formDots(context.form)}</span>
+    <small>${stats.goalsFor}–${stats.goalsAgainst}</small>
+    <p>${compactRecent(context)}</p>
+  </div>`;
 }
 
 function contextHtml(a, b) {
-  if (!a || !b) return '<section class="teamContext"><h3>Форма команд</h3><p class="muted">Данные недоступны для одной из команд.</p></section>';
+  if (!a || !b) return '<section class="teamContext"><h3>Форма</h3><p class="muted">Данные недоступны для одной из команд.</p></section>';
   const h2h = findHeadToHead(a, b);
-  return `<section class="teamContext">
-    <h3>Форма команд</h3>
-    <div class="formGrid"><span>${a.team}</span><div>${formPills(a.form)}</div><span>${b.team}</span><div>${formPills(b.form)}</div></div>
-    <h3>Последние матчи</h3>
-    <div class="recentGrid"><div><h4>${a.team}</h4>${recentList(a)}</div><div><h4>${b.team}</h4>${recentList(b)}</div></div>
-    <h3>Очные встречи</h3>
-    ${h2h.length ? `<ul class="recentList">${h2h.map((m) => `<li>${m.score} · ${m.date.slice(0, 10)}</li>`).join('')}</ul>` : '<p class="muted">В последних данных ESPN очных матчей нет.</p>'}
+  return `<section class="teamContext compactTeamContext">
+    <h3>Форма</h3>
+    <div class="formVerdict">${formVerdict(a, b)}</div>
+    ${compactFormRow(a)}
+    ${compactFormRow(b)}
+    ${h2h.length ? `<h3>Очные встречи</h3><ul class="recentList">${h2h.map((m) => `<li>${m.score} · ${m.date.slice(0, 10)}</li>`).join('')}</ul>` : ''}
     <p class="muted sourceNote">Источник: ESPN team schedule</p>
   </section>`;
 }
