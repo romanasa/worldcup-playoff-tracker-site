@@ -1,6 +1,9 @@
 import { MATCHES } from './data.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
+const KNOWN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
+  .filter((team) => team.type === 'team')
+  .map((team) => [team.name, team]));
 
 export function createInitialState() {
   return { scores: {}, manualWinners: {}, statuses: {}, favorites: [] };
@@ -61,14 +64,13 @@ function labelForSlot(slot) {
 }
 
 function resolveSlot(slot, winners, losers) {
-  const knownTeam = (name) => MATCHES.flatMap((m) => [m.teamA, m.teamB]).find((team) => team.type === 'team' && team.name === name);
   if (slot.type === 'team') return { name: slot.name, espnName: slot.espnName, espnTeamId: slot.espnTeamId, placeholder: false };
   if (slot.type === 'winner' && winners[slot.id]) {
-    const base = knownTeam(winners[slot.id]);
+    const base = KNOWN_TEAMS.get(winners[slot.id]);
     return { name: winners[slot.id], espnName: base?.espnName, espnTeamId: base?.espnTeamId, placeholder: false };
   }
   if (slot.type === 'loser' && losers[slot.id]) {
-    const base = knownTeam(losers[slot.id]);
+    const base = KNOWN_TEAMS.get(losers[slot.id]);
     return { name: losers[slot.id], espnName: base?.espnName, espnTeamId: base?.espnTeamId, placeholder: false };
   }
   return { name: labelForSlot(slot), placeholder: true };
@@ -166,12 +168,7 @@ export function getProgress(resolved) {
 }
 
 export function getTeams() {
-  const names = new Set();
-  for (const m of MATCHES.filter((m) => m.round === 'r32')) {
-    names.add(m.teamA.name);
-    names.add(m.teamB.name);
-  }
-  return [...names].sort((a, b) => a.localeCompare(b, 'ru'));
+  return [...KNOWN_TEAMS.keys()].sort((a, b) => a.localeCompare(b, 'ru'));
 }
 
 export function formatTbilisiTime(iso) {
