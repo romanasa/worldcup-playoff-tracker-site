@@ -10,6 +10,12 @@ const ODDS_REFRESH_MS = 5 * 60_000;
 const LIVE_ODDS_REFRESH_MS = 60_000;
 const ESPN_SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary';
 const $ = (id) => document.getElementById(id);
+const TBILISI_TIME = { timeZone: 'Asia/Tbilisi' };
+const TIME_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, hour: '2-digit', minute: '2-digit' });
+const TIME_WITH_SECONDS_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const DATE_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, weekday: 'short', day: 'numeric', month: 'short' });
+const DATE_KEY_FORMATTER = new Intl.DateTimeFormat('en-CA', { ...TBILISI_TIME, year: 'numeric', month: '2-digit', day: '2-digit' });
+const DETAIL_TIME_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, dateStyle: 'medium', timeStyle: 'short' });
 
 let state = loadState();
 let liveStatus = { text: 'Live-счёт: ещё не обновлялся', ok: true };
@@ -28,9 +34,6 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 
 function scoreValue(match, side) { return match.score?.[side] ?? ''; }
 function penaltyValue(match, side) { return side === 'a' ? match.score?.penA : match.score?.penB; }
-function visibleMatch(match) {
-  return true;
-}
 
 function teamRow(match, side) {
   const team = side === 'a' ? match.teamA : match.teamB;
@@ -46,7 +49,7 @@ function teamRow(match, side) {
 function statusLine(match) {
   const status = match.status || {};
   const updated = status.updatedAt
-    ? new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit' }).format(new Date(status.updatedAt))
+    ? TIME_FORMATTER.format(new Date(status.updatedAt))
     : '';
   const parts = [`<span class="badge ${status.badge || 'SCHEDULED'}">${status.badge || 'SCHEDULED'}</span>`];
   if (status.minute) parts.push(status.minute);
@@ -63,13 +66,13 @@ function formatScore(match) {
   return `${match.score.a}:${match.score.b}${pens}`;
 }
 function shortTime(iso) {
-  return new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+  return TIME_FORMATTER.format(new Date(iso));
 }
 function dateLabel(iso) {
-  return new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(iso));
+  return DATE_FORMATTER.format(new Date(iso));
 }
 function dateKey(iso) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tbilisi', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
+  return DATE_KEY_FORMATTER.format(new Date(iso));
 }
 
 function matchCard(match) {
@@ -114,7 +117,7 @@ function renderHome(resolved) {
 
 function renderBracket(resolved) {
   const html = ROUNDS.map((round) => {
-    const cards = resolved.matches.filter((m) => round.ids.includes(m.id)).filter(visibleMatch).map(matchCard).join('');
+    const cards = resolved.matches.filter((m) => round.ids.includes(m.id)).map(matchCard).join('');
     return `<section class="round"><h2>${round.label}</h2>${cards || '<div class="empty">Нет матчей по фильтру</div>'}</section>`;
   }).join('');
   $('bracket').innerHTML = html;
@@ -123,7 +126,6 @@ function renderBracket(resolved) {
 function renderSchedule(resolved) {
   const groups = new Map();
   const sorted = resolved.matches
-    .filter(visibleMatch)
     .slice()
     .sort((a, b) => {
       const aDone = a.winner || a.status?.state === 'post' ? 1 : 0;
@@ -416,7 +418,7 @@ async function showMatchDetails(matchId) {
   const match = resolved.matches.find((item) => item.id === matchId);
   if (!match) return;
   const updated = match.status?.updatedAt
-    ? new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(match.status.updatedAt))
+    ? DETAIL_TIME_FORMATTER.format(new Date(match.status.updatedAt))
     : '—';
   $('matchDetails').innerHTML = `
     <button class="closeBtn" value="cancel" aria-label="Закрыть">×</button>
@@ -507,7 +509,7 @@ async function refreshScores() {
     const data = await response.json();
     state = applyEspnScoreboard(state, data.events || []);
     saveState();
-    const updated = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tbilisi', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
+    const updated = TIME_WITH_SECONDS_FORMATTER.format(new Date());
     const nextInterval = scheduleNextRefresh();
     scheduleOddsRefresh();
     liveStatus = { ok: true, text: `ESPN обновлён ${updated} ТБС · авто ${nextInterval / 1000} сек.` };
