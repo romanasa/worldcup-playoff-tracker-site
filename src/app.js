@@ -2,6 +2,7 @@ import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js';
 import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js';
 import { formatOddsTime, getMatchOdds, ODDS_SNAPSHOT_URL } from './odds.js?v=real-odds2';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
+import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -51,9 +52,10 @@ function statusLine(match) {
   const updated = status.updatedAt
     ? TIME_FORMATTER.format(new Date(status.updatedAt))
     : '';
-  const parts = [`<span class="badge ${status.badge || 'SCHEDULED'}">${status.badge || 'SCHEDULED'}</span>`];
+  const badge = status.badge || 'SCHEDULED';
+  const parts = [`<span class="badge ${badge}">${displayStatusBadge(status)}</span>`];
   if (status.minute) parts.push(status.minute);
-  if (updated) parts.push(`ESPN ${updated}`);
+  if (updated) parts.push(`обновлено ${updated}`);
   return parts.join(' · ');
 }
 
@@ -97,6 +99,7 @@ function renderHome(resolved) {
   const progress = getProgress(resolved);
   const primary = summary.primary.match;
   const isLive = summary.primary.type === 'live';
+  const timing = primaryMatchTiming(summary);
   const todayList = (summary.today.length ? summary.today : resolved.matches.filter((m) => !m.winner).slice(0, 3)).slice(0, 4);
   $('homeSummary').innerHTML = `
     <article class="panel nowCard ${isLive ? 'liveNow' : ''}">
@@ -104,7 +107,7 @@ function renderHome(resolved) {
       ${primary ? `<h2>${teamsText(primary)}</h2>
       <div class="heroScore">${formatScore(primary)}</div>
       <p>${statusLine(primary)}</p>
-      <p class="muted">${dateLabel(primary.kickoffUtc)}, ${shortTime(primary.kickoffUtc)} ТБС · ${summary.countdown}</p>
+      <p class="muted">${dateLabel(primary.kickoffUtc)}, ${shortTime(primary.kickoffUtc)} Тбилиси${timing ? ` · ${timing}` : ''}</p>
       <p class="muted">${primary.venue}</p>` : '<h2>Турнир завершён</h2>'}
     </article>
     <article class="panel todayCard">
@@ -260,6 +263,10 @@ function favoriteFromMarket(market) {
     .sort((a, b) => Number(a[1]) - Number(b[1]))[0] || null;
 }
 
+function formatFreshnessTime(date) {
+  return date ? TIME_FORMATTER.format(date) : '—';
+}
+
 function favoriteSummaryHtml(match) {
   const odds = getMatchOdds(match.id, oddsSnapshot);
   const market = odds?.markets?.h2h_3_way || odds?.markets?.draw_no_bet;
@@ -267,11 +274,20 @@ function favoriteSummaryHtml(match) {
   if (!odds?.available || !market || !favorite) {
     return `<section class="favoriteStrip muted"><b>Фаворит</b><span>коэффициентов пока нет</span></section>`;
   }
+  const freshness = oddsFreshness(match, market);
+  if (freshness.stale) {
+    return `<section class="favoriteStrip staleOdds">
+      <b>Коэффициенты устарели</b>
+      <strong>рынок: ${market.label || '90 минут'}</strong>
+      <span>не показываем фаворита</span>
+      <small>рынок ${formatFreshnessTime(freshness.marketTime)} · счёт ${formatFreshnessTime(freshness.scoreTime)}</small>
+    </section>`;
+  }
   const [team, price] = favorite;
   const probability = market.probabilities?.[team];
   const updated = formatOddsTime(oddsSnapshot?.updatedAt);
   return `<section class="favoriteStrip">
-    <b>Фаворит 90 мин</b>
+    <b>Фаворит · ${market.label || '90 минут'}</b>
     <strong>${team}</strong>
     <span>${probability ? `${probability}% · ` : ''}${Number(price).toFixed(2)}</span>
     <small>обновлено ${updated} ТБС</small>
@@ -304,6 +320,7 @@ function oddsHtml(match) {
   return `<section class="oddsBlock">
     <h3>Коэффициенты</h3>
     ${markets.map(oddsMarketHtml).join('')}
+    ${odds.warning ? `<p class="muted sourceNote">${odds.warning}</p>` : ''}
     <p class="muted sourceNote">Источник: ${source}${bookmakers ? ` / ${bookmakers}` : ''} · обновлено ${updated} ТБС</p>
   </section>`;
 }
