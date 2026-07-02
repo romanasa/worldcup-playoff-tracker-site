@@ -278,9 +278,9 @@ function favoriteSummaryHtml(match) {
   if (freshness.stale) {
     return `<section class="favoriteStrip staleOdds">
       <b>Коэффициенты устарели</b>
-      <strong>рынок: ${market.label || '90 минут'}</strong>
-      <span>не показываем фаворита</span>
-      <small>рынок ${formatFreshnessTime(freshness.marketTime)} · счёт ${formatFreshnessTime(freshness.scoreTime)}</small>
+      <p>Рынок: ${market.label || '90 минут'}</p>
+      <p>Не показываем фаворита</p>
+      <small>Обновлено: рынок ${formatFreshnessTime(freshness.marketTime)} · счёт ${formatFreshnessTime(freshness.scoreTime)}</small>
     </section>`;
   }
   const [team, price] = favorite;
