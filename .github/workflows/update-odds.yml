@@ -4,19 +4,30 @@ on:
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
+    inputs:
+      live_minutes:
+        description: 'Override: refresh every minute for this many minutes. Empty = auto-detect match window.'
+        required: false
+        default: ''
+      refresh_seconds:
+        description: 'Seconds between live refreshes'
+        required: false
+        default: '60'
 
 permissions:
   contents: write
 
 concurrency:
   group: update-odds
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   update-odds:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - uses: actions/setup-node@v4
         with:
@@ -26,24 +37,72 @@ jobs:
         id: refresh
         env:
           THE_ODDS_API_KEY: ${{ secrets.THE_ODDS_API_KEY }}
+          LIVE_MINUTES_INPUT: ${{ github.event.inputs.live_minutes || '' }}
+          REFRESH_SECONDS: ${{ github.event.inputs.refresh_seconds || '60' }}
         run: |
           if [ -z "$THE_ODDS_API_KEY" ]; then
             echo "THE_ODDS_API_KEY secret is not set; skipping odds refresh"
             echo "updated=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          node scripts/update-odds.mjs
-          echo "updated=true" >> "$GITHUB_OUTPUT"
 
-      - name: Commit updated snapshot
-        if: steps.refresh.outputs.updated == 'true'
-        run: |
-          if git diff --quiet -- src/odds.json; then
-            echo "Odds snapshot unchanged"
-            exit 0
-          fi
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/odds.json
-          git commit -m "chore: update odds snapshot"
-          git push
+
+          commit_if_changed() {
+            if git diff --quiet -- src/odds.json; then
+              echo "Odds snapshot unchanged"
+              return 0
+            fi
+            git add src/odds.json
+            git commit -m "chore: update odds snapshot"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          }
+
+          run_refresh() {
+            node scripts/update-odds.mjs
+            commit_if_changed
+          }
+
+          auto_live_minutes() {
+            node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const source = await readFile('src/data.js', 'utf8');
+          const now = Date.now();
+          const liveLeadMs = 15 * 60_000;
+          const liveTailMs = 135 * 60_000;
+          const kickoffRegex = /kickoffUtc: '([^']+)'/g;
+          const hasLiveWindow = [...source.matchAll(kickoffRegex)].some((match) => {
+            const kickoff = Date.parse(match[1]);
+            return Number.isFinite(kickoff) && now >= kickoff - liveLeadMs && now <= kickoff + liveTailMs;
+          });
+          console.log(hasLiveWindow ? '5' : '0');
+          NODE
+          }
+
+          LIVE_MINUTES="${LIVE_MINUTES_INPUT:-}"
+          if [ -z "$LIVE_MINUTES" ]; then LIVE_MINUTES="$(auto_live_minutes)"; fi
+          REFRESH_SECONDS="${REFRESH_SECONDS:-60}"
+          if ! [[ "$LIVE_MINUTES" =~ ^[0-9]+$ ]]; then LIVE_MINUTES=0; fi
+          if ! [[ "$REFRESH_SECONDS" =~ ^[0-9]+$ ]]; then REFRESH_SECONDS=60; fi
+          if [ "$REFRESH_SECONDS" -lt 30 ]; then REFRESH_SECONDS=30; fi
+          if [ "$LIVE_MINUTES" -gt 180 ]; then LIVE_MINUTES=180; fi
+
+          if [ "$LIVE_MINUTES" -le 0 ]; then
+            echo "Normal odds mode: one refresh"
+            run_refresh
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          iterations=$(( (LIVE_MINUTES * 60 + REFRESH_SECONDS - 1) / REFRESH_SECONDS ))
+          echo "Live odds mode: $iterations refreshes, every ${REFRESH_SECONDS}s, for about ${LIVE_MINUTES} minutes"
+          for i in $(seq 1 "$iterations"); do
+            echo "Live odds refresh $i/$iterations"
+            run_refresh
+            if [ "$i" -lt "$iterations" ]; then sleep "$REFRESH_SECONDS"; fi
+          done
+          echo "updated=true" >> "$GITHUB_OUTPUT"
