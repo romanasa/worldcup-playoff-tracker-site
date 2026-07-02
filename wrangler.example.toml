@@ -1,0 +1,13 @@
+name = "worldcup-odds-worker"
+main = "workers/odds-refresh-worker.js"
+compatibility_date = "2026-07-02"
+
+# Optional: keep default unless the Pages URL changes.
+[vars]
+PAGES_BASE = "https://romanasa.github.io/worldcup-playoff-tracker-site"
+
+# Replace the id after running:
+#   npx wrangler kv namespace create ODDS_CACHE
+[[kv_namespaces]]
+binding = "ODDS_CACHE"
+id = "REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID"
