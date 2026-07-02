@@ -1,4 +1,10 @@
 export const ODDS_SNAPSHOT_URL = './src/odds.json';
+export const ODDS_WORKER_URL = '';
+
+export function oddsSnapshotUrls() {
+  const configured = ODDS_WORKER_URL || globalThis.localStorage?.getItem('wc2026-odds-worker-url') || '';
+  return [configured, ODDS_SNAPSHOT_URL].filter(Boolean);
+}
 
 export function normalizeProbabilities(odds = {}) {
   const entries = Object.entries(odds)

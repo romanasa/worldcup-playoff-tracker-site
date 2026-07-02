@@ -1,6 +1,6 @@
 import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js';
 import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js';
-import { formatOddsTime, getMatchOdds, ODDS_SNAPSHOT_URL } from './odds.js?v=real-odds2';
+import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=real-odds2';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs';
 
@@ -497,13 +497,19 @@ function scheduleNextRefresh() {
 
 
 async function loadOddsSnapshot() {
-  try {
-    const response = await fetch(`${ODDS_SNAPSHOT_URL}?_=${Date.now()}`, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    oddsSnapshot = await response.json();
-  } catch (error) {
-    oddsSnapshot = { source: 'The Odds API', markets: {}, error: error.message };
+  let lastError = null;
+  for (const url of oddsSnapshotUrls()) {
+    try {
+      const separator = url.includes('?') ? '&' : '?';
+      const response = await fetch(`${url}${separator}_=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      oddsSnapshot = await response.json();
+      return;
+    } catch (error) {
+      lastError = error;
+    }
   }
+  oddsSnapshot = { source: 'The Odds API', markets: {}, error: lastError?.message || 'Odds snapshot unavailable' };
 }
 
 async function refreshOddsSnapshot() {
