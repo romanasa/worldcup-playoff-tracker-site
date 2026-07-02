@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       live_minutes:
-        description: 'During a live match, refresh odds every minute for this many minutes (0 = once)'
+        description: 'Override: refresh every minute for this many minutes. Empty = auto-detect match window.'
         required: false
-        default: '0'
+        default: ''
       refresh_seconds:
         description: 'Seconds between live refreshes'
         required: false
@@ -19,7 +19,7 @@ permissions:
 
 concurrency:
   group: update-odds
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   update-odds:
@@ -37,7 +37,7 @@ jobs:
         id: refresh
         env:
           THE_ODDS_API_KEY: ${{ secrets.THE_ODDS_API_KEY }}
-          LIVE_MINUTES: ${{ github.event.inputs.live_minutes || '0' }}
+          LIVE_MINUTES_INPUT: ${{ github.event.inputs.live_minutes || '' }}
           REFRESH_SECONDS: ${{ github.event.inputs.refresh_seconds || '60' }}
         run: |
           if [ -z "$THE_ODDS_API_KEY" ]; then
@@ -67,7 +67,24 @@ jobs:
             commit_if_changed
           }
 
-          LIVE_MINUTES="${LIVE_MINUTES:-0}"
+          auto_live_minutes() {
+            node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const source = await readFile('src/data.js', 'utf8');
+          const now = Date.now();
+          const liveLeadMs = 15 * 60_000;
+          const liveTailMs = 135 * 60_000;
+          const kickoffRegex = /kickoffUtc: '([^']+)'/g;
+          const hasLiveWindow = [...source.matchAll(kickoffRegex)].some((match) => {
+            const kickoff = Date.parse(match[1]);
+            return Number.isFinite(kickoff) && now >= kickoff - liveLeadMs && now <= kickoff + liveTailMs;
+          });
+          console.log(hasLiveWindow ? '5' : '0');
+          NODE
+          }
+
+          LIVE_MINUTES="${LIVE_MINUTES_INPUT:-}"
+          if [ -z "$LIVE_MINUTES" ]; then LIVE_MINUTES="$(auto_live_minutes)"; fi
           REFRESH_SECONDS="${REFRESH_SECONDS:-60}"
           if ! [[ "$LIVE_MINUTES" =~ ^[0-9]+$ ]]; then LIVE_MINUTES=0; fi
           if ! [[ "$REFRESH_SECONDS" =~ ^[0-9]+$ ]]; then REFRESH_SECONDS=60; fi
@@ -75,6 +92,7 @@ jobs:
           if [ "$LIVE_MINUTES" -gt 180 ]; then LIVE_MINUTES=180; fi
 
           if [ "$LIVE_MINUTES" -le 0 ]; then
+            echo "Normal odds mode: one refresh"
             run_refresh
             echo "updated=true" >> "$GITHUB_OUTPUT"
             exit 0
