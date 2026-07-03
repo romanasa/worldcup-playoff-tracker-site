@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-03T22:51:06.478Z",
+  "updatedAt": "2026-07-03T22:52:07.842Z",
   "source": "The Odds API",
   "available": true,
   "note": "The Odds API currently does not expose a true to-qualify market for this sport. Snapshot uses event-specific h2h_3_way and draw_no_bet markets.",
@@ -88,7 +88,7 @@
             "Кабо-Верде": 2,
             "Ничья": 7
           },
-          "updatedAt": "2026-07-03T22:50:41Z"
+          "updatedAt": "2026-07-03T22:51:28Z"
         }
       },
       "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
@@ -112,7 +112,7 @@
             "Гана": 11,
             "Ничья": 22
           },
-          "updatedAt": "2026-07-03T22:51:03Z"
+          "updatedAt": "2026-07-03T22:52:01Z"
         }
       },
       "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
