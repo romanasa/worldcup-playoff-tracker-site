@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-03T20:47:06.946Z",
+  "updatedAt": "2026-07-03T21:50:15.809Z",
   "source": "The Odds API",
   "available": true,
   "note": "The Odds API currently does not expose a true to-qualify market for this sport. Snapshot uses event-specific h2h_3_way and draw_no_bet markets.",
@@ -79,16 +79,16 @@
           "label": "90 минут",
           "sourceBookmaker": "Pinnacle",
           "odds": {
-            "Аргентина": 1.16,
-            "Кабо-Верде": 21,
-            "Ничья": 8.75
+            "Аргентина": 1.15,
+            "Кабо-Верде": 23,
+            "Ничья": 9
           },
           "probabilities": {
-            "Аргентина": 84,
-            "Кабо-Верде": 5,
+            "Аргентина": 85,
+            "Кабо-Верде": 4,
             "Ничья": 11
           },
-          "updatedAt": "2026-07-03T20:47:05Z"
+          "updatedAt": "2026-07-03T21:50:02Z"
         }
       },
       "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
@@ -112,32 +112,15 @@
             "Гана": 11,
             "Ничья": 22
           },
-          "updatedAt": "2026-07-03T20:47:05Z"
+          "updatedAt": "2026-07-03T21:50:02Z"
         }
       },
       "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
     },
     "88": {
-      "available": true,
-      "eventId": "fb270a3dac2b682c861bd674a5ff4a04",
-      "markets": {
-        "h2h_3_way": {
-          "available": true,
-          "key": "h2h_3_way",
-          "label": "90 минут",
-          "sourceBookmaker": "Tipico",
-          "odds": {
-            "Австралия": 3.2,
-            "Египет": 1.3
-          },
-          "probabilities": {
-            "Австралия": 29,
-            "Египет": 71
-          },
-          "updatedAt": "2026-07-03T20:46:41Z"
-        }
-      },
-      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     }
   }
 }
