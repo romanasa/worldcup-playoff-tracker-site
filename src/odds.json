@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-03T22:49:03.941Z",
+  "updatedAt": "2026-07-03T22:50:05.123Z",
   "source": "The Odds API",
   "available": true,
   "note": "The Odds API currently does not expose a true to-qualify market for this sport. Snapshot uses event-specific h2h_3_way and draw_no_bet markets.",
@@ -80,7 +80,7 @@
           "sourceBookmaker": "Virgin Bet",
           "odds": {
             "Аргентина": 1.01,
-            "Кабо-Верде": 41,
+            "Кабо-Верде": 46,
             "Ничья": 14
           },
           "probabilities": {
@@ -88,7 +88,7 @@
             "Кабо-Верде": 2,
             "Ничья": 7
           },
-          "updatedAt": "2026-07-03T22:48:21Z"
+          "updatedAt": "2026-07-03T22:49:54Z"
         }
       },
       "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
@@ -112,7 +112,7 @@
             "Гана": 11,
             "Ничья": 22
           },
-          "updatedAt": "2026-07-03T22:48:57Z"
+          "updatedAt": "2026-07-03T22:49:53Z"
         }
       },
       "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
