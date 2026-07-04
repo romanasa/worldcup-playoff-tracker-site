@@ -1,4 +1,4 @@
-import { MATCHES } from './data.js';
+import { MATCHES } from './data.js?v=bracket-fix1';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const KNOWN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
