@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-04T01:54:40.563Z",
+  "updatedAt": "2026-07-04T05:32:52.742Z",
   "source": "The Odds API",
   "available": true,
   "note": "The Odds API currently does not expose a true to-qualify market for this sport. Snapshot uses event-specific h2h_3_way and draw_no_bet markets.",
@@ -75,28 +75,9 @@
       "message": "Коэффициенты пока недоступны"
     },
     "87": {
-      "available": true,
-      "eventId": "88e032a2b2e5042d26db3f0da1df924a",
-      "markets": {
-        "h2h_3_way": {
-          "available": true,
-          "key": "h2h_3_way",
-          "label": "90 минут",
-          "sourceBookmaker": "Pinnacle",
-          "odds": {
-            "Колумбия": 1.13,
-            "Гана": 35.46,
-            "Ничья": 8.19
-          },
-          "probabilities": {
-            "Колумбия": 85,
-            "Гана": 3,
-            "Ничья": 12
-          },
-          "updatedAt": "2026-07-04T01:54:23Z"
-        }
-      },
-      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
     },
     "88": {
       "available": false,
