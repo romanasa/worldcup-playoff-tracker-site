@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-06T06:03:07.464Z",
+  "updatedAt": "2026-07-06T07:36:42.536Z",
   "source": "The Odds API",
   "available": true,
   "note": "The Odds API currently does not expose a true to-qualify market for this sport. Snapshot uses event-specific h2h_3_way and draw_no_bet markets.",
@@ -80,6 +80,181 @@
       "message": "Коэффициенты пока недоступны"
     },
     "88": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "89": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "90": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "91": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "92": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "93": {
+      "available": true,
+      "eventId": "16ed3adcf661b3a9bea39871a2d204df",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Pinnacle",
+          "odds": {
+            "Португалия": 4.19,
+            "Испания": 1.96,
+            "Ничья": 3.64
+          },
+          "probabilities": {
+            "Португалия": 23,
+            "Испания": 50,
+            "Ничья": 27
+          },
+          "updatedAt": "2026-07-06T07:36:36Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
+    },
+    "94": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "95": {
+      "available": true,
+      "eventId": "190922affd0be754bfefd71548dbf90d",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Pinnacle",
+          "odds": {
+            "Аргентина": 1.39,
+            "Египет": 9.29,
+            "Ничья": 4.74
+          },
+          "probabilities": {
+            "Аргентина": 69,
+            "Египет": 10,
+            "Ничья": 20
+          },
+          "updatedAt": "2026-07-06T07:36:36Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
+    },
+    "96": {
+      "available": true,
+      "eventId": "a6da973c5749ce60adab77d64b3664f4",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Pinnacle",
+          "odds": {
+            "Колумбия": 2.35,
+            "Швейцария": 3.53,
+            "Ничья": 3.09
+          },
+          "probabilities": {
+            "Колумбия": 41,
+            "Швейцария": 27,
+            "Ничья": 31
+          },
+          "updatedAt": "2026-07-06T07:36:36Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
+    },
+    "97": {
+      "available": true,
+      "eventId": "b6e926d7f026782b9cab2fa02b823d92",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Pinnacle",
+          "odds": {
+            "Франция": 1.6,
+            "Марокко": 6.49,
+            "Ничья": 3.85
+          },
+          "probabilities": {
+            "Франция": 60,
+            "Марокко": 15,
+            "Ничья": 25
+          },
+          "updatedAt": "2026-07-06T07:36:36Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
+    },
+    "98": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "99": {
+      "available": true,
+      "eventId": "e66e4478b739fa0657a7a11235e1fcee",
+      "markets": {
+        "h2h_3_way": {
+          "available": true,
+          "key": "h2h_3_way",
+          "label": "90 минут",
+          "sourceBookmaker": "Pinnacle",
+          "odds": {
+            "Англия": 1.95,
+            "Норвегия": 4.04,
+            "Ничья": 3.63
+          },
+          "probabilities": {
+            "Англия": 50,
+            "Норвегия": 24,
+            "Ничья": 27
+          },
+          "updatedAt": "2026-07-06T07:36:36Z"
+        }
+      },
+      "warning": "Это не рынок прохода дальше: 90 минут и победа без ничьей не учитывают овертайм/пенальти как исход прохода."
+    },
+    "100": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "101": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "102": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "103": {
+      "available": false,
+      "markets": {},
+      "message": "Коэффициенты пока недоступны"
+    },
+    "104": {
       "available": false,
       "markets": {},
       "message": "Коэффициенты пока недоступны"
