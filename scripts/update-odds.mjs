@@ -68,22 +68,63 @@ function parseMatches(source) {
   const matchesLiteral = source.match(/export const MATCHES = \[([\s\S]*?)\];/);
   if (!matchesLiteral) throw new Error('Cannot find MATCHES in src/data.js');
 
+  const scoreboardUrl = source.match(/export const SCOREBOARD_URL = '([^']+)'/)?.[1];
   const teamMap = new Map();
   const teamRegex = /team\('([^']+)',\s*'([^']+)'/g;
   for (const match of source.matchAll(teamRegex)) teamMap.set(normalizeName(match[2]), match[1]);
 
   const rows = [];
-  const rowRegex = /\{ id: (\d+), espnId: '[^']+', round: '([^']+)', kickoffUtc: '([^']+)'[\s\S]*?teamA: team\('([^']+)',\s*'([^']+)'[\s\S]*?teamB: team\('([^']+)',\s*'([^']+)'[\s\S]*?\}/g;
+  const rowRegex = /\{ id: (\d+), espnId: '([^']+)', round: '([^']+)', kickoffUtc: '([^']+)'[\s\S]*?teamA: (team\('[^)]+'\)|winner\(\d+\)|loser\(\d+\))[\s\S]*?teamB: (team\('[^)]+'\)|winner\(\d+\)|loser\(\d+\))[\s\S]*?\}/g;
   for (const match of source.matchAll(rowRegex)) {
     rows.push({
       id: Number(match[1]),
-      round: match[2],
-      kickoffUtc: match[3],
-      teamA: { ru: match[4], en: match[5] },
-      teamB: { ru: match[6], en: match[7] },
+      espnId: match[2],
+      round: match[3],
+      kickoffUtc: match[4],
+      teamA: parseSlot(match[5], teamMap),
+      teamB: parseSlot(match[6], teamMap),
     });
   }
-  return { matches: rows, teamMap };
+  return { matches: rows, teamMap, scoreboardUrl };
+}
+
+function parseSlot(slot, teamMap) {
+  const teamMatch = slot.match(/team\('([^']+)',\s*'([^']+)'/);
+  if (teamMatch) return { ru: teamMatch[1], en: teamMatch[2] };
+  const refMatch = slot.match(/(winner|loser)\((\d+)\)/);
+  if (refMatch) return { ru: `${refMatch[1]} M${refMatch[2]}`, en: `${refMatch[1]} M${refMatch[2]}`, placeholder: true };
+  return { ru: slot, en: slot, placeholder: true };
+}
+
+async function applyEspnCompetitors(matches, scoreboardUrl, teamMap) {
+  if (!scoreboardUrl) return matches;
+  const response = await fetch(scoreboardUrl);
+  if (!response.ok) throw new Error(`ESPN scoreboard HTTP ${response.status}: ${await response.text()}`);
+  const scoreboard = await response.json();
+  const byEspnId = new Map((scoreboard.events || []).map((event) => [String(event.id), event]));
+
+  return matches.map((match) => {
+    const event = byEspnId.get(String(match.espnId));
+    const competitors = event?.competitions?.[0]?.competitors || [];
+    const realTeams = competitors
+      .map((competitor) => competitor.team?.displayName)
+      .filter((name) => teamMap.has(normalizeName(name)));
+    if (realTeams.length < 2) return match;
+
+    const currentNames = [match.teamA.en, match.teamB.en].map(normalizeName);
+    const [first, second] = realTeams;
+    const firstIndex = currentNames.indexOf(normalizeName(first));
+    const secondIndex = currentNames.indexOf(normalizeName(second));
+    const ordered = firstIndex !== -1 && secondIndex !== -1
+      ? [firstIndex === 0 ? first : second, firstIndex === 0 ? second : first]
+      : [first, second];
+
+    return {
+      ...match,
+      teamA: { ru: teamMap.get(normalizeName(ordered[0])), en: ordered[0] },
+      teamB: { ru: teamMap.get(normalizeName(ordered[1])), en: ordered[1] },
+    };
+  });
 }
 
 function eventKey(a, b) {
@@ -195,7 +236,9 @@ async function fetchOdds() {
 
 async function main() {
   const source = await readFile(dataPath, 'utf8');
-  const { matches, teamMap } = parseMatches(source);
+  const parsed = parseMatches(source);
+  const matches = await applyEspnCompetitors(parsed.matches, parsed.scoreboardUrl, parsed.teamMap);
+  const { teamMap } = parsed;
   const events = await fetchOdds();
   const eventsByTeams = new Map(events.map((event) => [eventKey(event.home_team, event.away_team), event]));
 
