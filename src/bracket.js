@@ -1,12 +1,15 @@
-import { MATCHES } from './data.js?v=bracket-fix1';
+import { MATCHES } from './data.js?v=score-sync2';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const KNOWN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
   .filter((team) => team.type === 'team')
   .map((team) => [team.name, team]));
+const KNOWN_ESPN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
+  .filter((team) => team.type === 'team')
+  .map((team) => [team.espnName, team]));
 
 export function createInitialState() {
-  return { scores: {}, manualWinners: {}, statuses: {}, favorites: [] };
+  return { scores: {}, manualWinners: {}, statuses: {}, favorites: [], officialTeams: {} };
 }
 
 export function setScore(state, matchId, scoreA, scoreB) {
@@ -115,16 +118,23 @@ function inferResult(match, state) {
   return { winner: null, loser: null };
 }
 
+function resolvedOfficialTeam(slotName, official) {
+  const name = official?.[slotName];
+  const base = name ? KNOWN_TEAMS.get(name) : null;
+  return base ? { name: base.name, espnName: base.espnName, espnTeamId: base.espnTeamId, placeholder: false, official: true } : null;
+}
+
 export function resolveBracket(state) {
   const winners = {};
   const losers = {};
   const resolvedMatches = [];
 
   for (const base of MATCHES) {
+    const official = state.officialTeams?.[base.id];
     const match = {
       ...base,
-      teamA: resolveSlot(base.teamA, winners, losers),
-      teamB: resolveSlot(base.teamB, winners, losers),
+      teamA: resolvedOfficialTeam('a', official) || resolveSlot(base.teamA, winners, losers),
+      teamB: resolvedOfficialTeam('b', official) || resolveSlot(base.teamB, winners, losers),
       score: state.scores[base.id] ?? null,
       status: state.statuses?.[base.id] ?? { state: 'pre', badge: 'SCHEDULED', detail: 'Scheduled', source: 'schedule' },
       manualWinner: state.manualWinners[base.id] ?? null,
@@ -237,6 +247,29 @@ function localNameForEspnTeam(espnName, match) {
   return translatedEspnTeam(espnName)?.name || null;
 }
 
+function setOfficialTeams(state, matchId, competitors = [], match) {
+  const known = competitors
+    .map((competitor) => ({
+      localName: KNOWN_ESPN_TEAMS.get(competitor.team?.displayName)?.name,
+      espnName: competitor.team?.displayName,
+    }))
+    .filter((team) => team.localName);
+  if (known.length < 2) return state;
+
+  const byEspnName = new Map(known.map((team) => [team.espnName, team.localName]));
+  const teamAEspn = displayNameForSlot(match.teamA);
+  const teamBEspn = displayNameForSlot(match.teamB);
+  const officialA = byEspnName.get(teamAEspn);
+  const officialB = byEspnName.get(teamBEspn);
+
+  const next = clone(state);
+  next.officialTeams ||= {};
+  next.officialTeams[matchId] = officialA && officialB
+    ? { a: officialA, b: officialB }
+    : { a: known[0].localName, b: known[1].localName };
+  return next;
+}
+
 export function applyEspnScoreboard(state, events, matchMap = MATCHES) {
   let next = clone(state);
   const byEspn = new Map(matchMap.map((m) => [String(m.espnId), m]));
@@ -245,17 +278,20 @@ export function applyEspnScoreboard(state, events, matchMap = MATCHES) {
     const baseMatch = byEspn.get(String(event.id));
     if (!baseMatch) continue;
     const competition = event.competitions?.[0];
+    if (!competition) continue;
     const home = competition?.competitors?.find((c) => c.homeAway === 'home');
     const away = competition?.competitors?.find((c) => c.homeAway === 'away');
     const hasPenalties = home?.shootoutScore != null || away?.shootoutScore != null;
     next = setMatchStatus(next, baseMatch.id, normalizeEspnStatus(event, hasPenalties));
     const status = event.status?.type || {};
-    if (!competition || status.state === 'pre') continue;
-
     // Later knockout rounds are declared as winner(Mxx) placeholders in MATCHES.
     // Resolve the bracket with already-applied ESPN finals before matching ESPN
     // display names, otherwise M89+ cannot get scores or official winners.
     const match = resolvedMatchForScoreboard(baseMatch.id, next) || baseMatch;
+    next = setOfficialTeams(next, baseMatch.id, competition.competitors, match);
+
+    if (status.state === 'pre') continue;
+
     const scoreByName = new Map([
       [home?.team?.displayName, Number(home?.score)],
       [away?.team?.displayName, Number(away?.score)],

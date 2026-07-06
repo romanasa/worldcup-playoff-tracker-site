@@ -1,5 +1,5 @@
-import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=score-sync1';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=score-sync1';
+import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=score-sync2';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=score-sync2';
 import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=real-odds2';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs';
