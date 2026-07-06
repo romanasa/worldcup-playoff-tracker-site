@@ -1,6 +1,6 @@
 import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=scheme-order1';
 import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=scheme-order1';
-import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=real-odds2';
+import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=odds-resolved1';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs';
 
