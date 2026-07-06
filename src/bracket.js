@@ -218,21 +218,44 @@ export function getHomeSummary(resolved, now = new Date()) {
   };
 }
 
+function translatedEspnTeam(espnName) {
+  return MATCHES.flatMap((m) => [m.teamA, m.teamB])
+    .find((team) => team.type === 'team' && team.espnName === espnName);
+}
+
+function resolvedMatchForScoreboard(matchId, state) {
+  return resolveBracket(state).matches.find((item) => item.id === matchId);
+}
+
+function displayNameForSlot(slot) {
+  return slot?.espnName || translatedEspnTeam(slot?.name)?.espnName || slot?.name;
+}
+
+function localNameForEspnTeam(espnName, match) {
+  if (displayNameForSlot(match.teamA) === espnName) return match.teamA.name;
+  if (displayNameForSlot(match.teamB) === espnName) return match.teamB.name;
+  return translatedEspnTeam(espnName)?.name || null;
+}
+
 export function applyEspnScoreboard(state, events, matchMap = MATCHES) {
   let next = clone(state);
   const byEspn = new Map(matchMap.map((m) => [String(m.espnId), m]));
 
   for (const event of events || []) {
-    const match = byEspn.get(String(event.id));
-    if (!match) continue;
+    const baseMatch = byEspn.get(String(event.id));
+    if (!baseMatch) continue;
     const competition = event.competitions?.[0];
     const home = competition?.competitors?.find((c) => c.homeAway === 'home');
     const away = competition?.competitors?.find((c) => c.homeAway === 'away');
     const hasPenalties = home?.shootoutScore != null || away?.shootoutScore != null;
-    next = setMatchStatus(next, match.id, normalizeEspnStatus(event, hasPenalties));
+    next = setMatchStatus(next, baseMatch.id, normalizeEspnStatus(event, hasPenalties));
     const status = event.status?.type || {};
     if (!competition || status.state === 'pre') continue;
 
+    // Later knockout rounds are declared as winner(Mxx) placeholders in MATCHES.
+    // Resolve the bracket with already-applied ESPN finals before matching ESPN
+    // display names, otherwise M89+ cannot get scores or official winners.
+    const match = resolvedMatchForScoreboard(baseMatch.id, next) || baseMatch;
     const scoreByName = new Map([
       [home?.team?.displayName, Number(home?.score)],
       [away?.team?.displayName, Number(away?.score)],
@@ -242,18 +265,20 @@ export function applyEspnScoreboard(state, events, matchMap = MATCHES) {
       [away?.team?.displayName, away?.shootoutScore],
     ]);
 
-    const scoreA = scoreByName.get(match.teamA.espnName);
-    const scoreB = scoreByName.get(match.teamB.espnName);
-    const penA = pensByName.get(match.teamA.espnName);
-    const penB = pensByName.get(match.teamB.espnName);
+    const teamAName = displayNameForSlot(match.teamA);
+    const teamBName = displayNameForSlot(match.teamB);
+    const scoreA = scoreByName.get(teamAName);
+    const scoreB = scoreByName.get(teamBName);
+    const penA = pensByName.get(teamAName);
+    const penB = pensByName.get(teamBName);
     if (Number.isFinite(scoreA) && Number.isFinite(scoreB)) {
-      next = setScoreDetails(next, match.id, scoreA, scoreB, penA ?? null, penB ?? null);
+      next = setScoreDetails(next, baseMatch.id, scoreA, scoreB, penA ?? null, penB ?? null);
     }
 
     if (status.state === 'post') {
       const espnWinner = competition.competitors?.find((c) => c.winner)?.team?.displayName;
-      const winnerName = match.teamA.espnName === espnWinner ? match.teamA.name : match.teamB.espnName === espnWinner ? match.teamB.name : null;
-      if (winnerName) next = setManualWinner(next, match.id, winnerName);
+      const winnerName = localNameForEspnTeam(espnWinner, match);
+      if (winnerName) next = setManualWinner(next, baseMatch.id, winnerName);
     }
   }
   return next;
