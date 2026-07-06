@@ -1,5 +1,5 @@
-import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=score-sync2';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=score-sync2';
+import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=scheme-order1';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=scheme-order1';
 import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=real-odds2';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
 import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs';
@@ -150,7 +150,7 @@ function renderSchedule(resolved) {
 
 function schemeNode(match) {
   const score = match.score ? `<span class="schemeScore">${formatScore(match)}</span>` : '';
-  return `<article class="schemeMatch ${match.status?.state === 'in' ? 'liveNow' : ''} ${match.winner ? 'completed' : ''}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
+  return `<article class="schemeMatch match-${match.id} ${match.status?.state === 'in' ? 'liveNow' : ''} ${match.winner ? 'completed' : ''}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
     <small>M${match.id} · ${formatTbilisiTime(match.kickoffUtc)} ТБС</small>
     <strong>${match.teamA.name}</strong>
     <strong>${match.teamB.name}</strong>

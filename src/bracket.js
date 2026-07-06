@@ -1,4 +1,4 @@
-import { MATCHES } from './data.js?v=score-sync2';
+import { MATCHES } from './data.js?v=scheme-order1';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const KNOWN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
@@ -154,12 +154,18 @@ export function getBracketScheme(resolved) {
   const columns = [
     { key: 'r32', label: '1/32 финала' },
     { key: 'r16', label: '1/16 финала' },
-    { key: 'qf', label: '1/4 финала' },
+    // Visual order follows the vertical source matches, not numeric ESPN IDs:
+    // M99 is fed by M91/M92, while M98 is fed by M93/M94.
+    { key: 'qf', label: '1/4 финала', visualIds: [97, 99, 98, 100] },
     { key: 'sf', label: '1/2 финала' },
     { key: 'finals', label: 'Финалы' },
   ];
   return columns.map((column) => {
-    const matches = resolved.matches.filter((m) => column.key === 'finals' ? (m.final || m.bronze) : m.round === column.key);
+    let matches = resolved.matches.filter((m) => column.key === 'finals' ? (m.final || m.bronze) : m.round === column.key);
+    if (column.visualIds) {
+      const visualOrder = new Map(column.visualIds.map((id, index) => [id, index]));
+      matches = [...matches].sort((a, b) => (visualOrder.get(a.id) ?? 99) - (visualOrder.get(b.id) ?? 99));
+    }
     return { ...column, ids: matches.map((m) => m.id), matches };
   });
 }
