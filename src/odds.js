@@ -1,4 +1,4 @@
-export const ODDS_SNAPSHOT_URL = './src/odds.json';
+export const ODDS_SNAPSHOT_URL = './src/odds.json?v=odds-resolved1';
 export const ODDS_WORKER_URL = '';
 
 export function oddsSnapshotUrls() {
