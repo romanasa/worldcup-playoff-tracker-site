@@ -1,5 +1,5 @@
-import { MATCHES } from './data.js?v=scheme-correct2';
-import { isMatchLive, isMatchUpcoming, selectTodayMatches } from './liveUi.mjs?v=scheme-correct2';
+import { MATCHES } from './data.js?v=factual-fix1';
+import { isMatchLive, isMatchUpcoming, selectTodayMatches } from './liveUi.mjs?v=factual-fix1';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const KNOWN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
@@ -261,25 +261,27 @@ function localNameForEspnTeam(espnName, match) {
 }
 
 function setOfficialTeams(state, matchId, competitors = [], match) {
-  const known = competitors
-    .map((competitor) => ({
-      localName: KNOWN_ESPN_TEAMS.get(competitor.team?.displayName)?.name,
-      espnName: competitor.team?.displayName,
-    }))
-    .filter((team) => team.localName);
-  if (known.length < 2) return state;
+  const teams = competitors.map((competitor) => ({
+    localName: KNOWN_ESPN_TEAMS.get(competitor.team?.displayName)?.name,
+    espnName: competitor.team?.displayName,
+  }));
+  const known = teams.filter((team) => team.localName);
+  if (!known.length) return state;
 
   const byEspnName = new Map(known.map((team) => [team.espnName, team.localName]));
   const teamAEspn = displayNameForSlot(match.teamA);
   const teamBEspn = displayNameForSlot(match.teamB);
-  const officialA = byEspnName.get(teamAEspn);
-  const officialB = byEspnName.get(teamBEspn);
+  const officialA = byEspnName.get(teamAEspn) || teams[0]?.localName;
+  const officialB = byEspnName.get(teamBEspn) || teams[1]?.localName;
+
+  if (!officialA && !officialB) return state;
 
   const next = clone(state);
   next.officialTeams ||= {};
-  next.officialTeams[matchId] = officialA && officialB
-    ? { a: officialA, b: officialB }
-    : { a: known[0].localName, b: known[1].localName };
+  next.officialTeams[matchId] = {
+    ...(officialA ? { a: officialA } : {}),
+    ...(officialB ? { b: officialB } : {}),
+  };
   return next;
 }
 
