@@ -1,8 +1,8 @@
-import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=today-filter1';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=today-filter1';
+import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=upcoming-dates1';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=upcoming-dates1';
 import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=odds-resolved1';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
-import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs?v=today-filter1';
+import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs?v=upcoming-dates1';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -14,6 +14,7 @@ const $ = (id) => document.getElementById(id);
 const TBILISI_TIME = { timeZone: 'Asia/Tbilisi' };
 const TIME_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, hour: '2-digit', minute: '2-digit' });
 const TIME_WITH_SECONDS_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const COMPACT_DATE_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, day: 'numeric', month: 'short' });
 const DATE_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, weekday: 'short', day: 'numeric', month: 'short' });
 const DATE_KEY_FORMATTER = new Intl.DateTimeFormat('en-CA', { ...TBILISI_TIME, year: 'numeric', month: '2-digit', day: '2-digit' });
 const DETAIL_TIME_FORMATTER = new Intl.DateTimeFormat('ru-RU', { ...TBILISI_TIME, dateStyle: 'medium', timeStyle: 'short' });
@@ -73,6 +74,9 @@ function shortTime(iso) {
 function dateLabel(iso) {
   return DATE_FORMATTER.format(new Date(iso));
 }
+function shortDateTime(iso) {
+  return `${COMPACT_DATE_FORMATTER.format(new Date(iso))}, ${shortTime(iso)}`;
+}
 function dateKey(iso) {
   return DATE_KEY_FORMATTER.format(new Date(iso));
 }
@@ -88,7 +92,7 @@ function matchCard(match) {
 
 function scheduleRow(match, compact = false) {
   return `<article class="scheduleRow ${match.status?.state === 'in' ? 'liveNow' : ''}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
-    <time>${shortTime(match.kickoffUtc)}</time>
+    <time>${compact ? shortDateTime(match.kickoffUtc) : shortTime(match.kickoffUtc)}</time>
     <div><strong>${teamsText(match)}</strong>${compact ? '' : `<span>${matchTitle(match)} · ${match.venue}</span>`}</div>
     <div class="scheduleStatus">${statusLine(match)}</div>
   </article>`;
