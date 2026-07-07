@@ -1,5 +1,5 @@
-import { MATCHES } from './data.js?v=upcoming-dates1';
-import { isMatchLive, isMatchUpcoming, selectTodayMatches } from './liveUi.mjs?v=upcoming-dates1';
+import { MATCHES } from './data.js?v=scheme-correct2';
+import { isMatchLive, isMatchUpcoming, selectTodayMatches } from './liveUi.mjs?v=scheme-correct2';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const KNOWN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
@@ -155,9 +155,9 @@ export function getBracketScheme(resolved) {
   const columns = [
     { key: 'r32', label: '1/32 финала' },
     { key: 'r16', label: '1/16 финала' },
-    // Visual order follows the vertical source matches, not numeric ESPN IDs:
-    // M99 is fed by M91/M92, while M98 is fed by M93/M94.
-    { key: 'qf', label: '1/4 финала', visualIds: [97, 99, 98, 100] },
+    // Use official bracket order here. Source-proximity ordering (M97/M99/M98/M100)
+    // makes the semifinals visually wrong because M101 is fed by M97/M98.
+    { key: 'qf', label: '1/4 финала' },
     { key: 'sf', label: '1/2 финала' },
     { key: 'finals', label: 'Финалы' },
   ];

@@ -1,10 +1,10 @@
-import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=upcoming-dates1';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=upcoming-dates1';
+import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=scheme-correct2';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=scheme-correct2';
 import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=odds-resolved1';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
-import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs?v=upcoming-dates1';
+import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs?v=scheme-correct2';
 
-const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
+const STORAGE_KEY = 'wc2026-playoff-tracker-v3';
 const REFRESH_MS = 60_000;
 const LIVE_REFRESH_MS = 15_000;
 const ODDS_REFRESH_MS = 5 * 60_000;
@@ -154,12 +154,23 @@ function renderSchedule(resolved) {
 
 function schemeNode(match) {
   const score = match.score ? `<span class="schemeScore">${formatScore(match)}</span>` : '';
+  const source = schemeSourceText(match);
   return `<article class="schemeMatch match-${match.id} ${match.status?.state === 'in' ? 'liveNow' : ''} ${match.winner ? 'completed' : ''}" data-match-id="${match.id}" tabindex="0" role="button" aria-label="Детали матча ${match.id}">
     <small>M${match.id} · ${formatTbilisiTime(match.kickoffUtc)} ТБС</small>
+    ${source ? `<em>${source}</em>` : ''}
     <strong>${match.teamA.name}</strong>
     <strong>${match.teamB.name}</strong>
     ${score}
   </article>`;
+}
+
+function schemeSourceText(match) {
+  const base = MATCHES.find((item) => item.id === match.id) || match;
+  const sourceId = (slot) => slot?.type === 'winner' || slot?.type === 'loser' ? `M${slot.id}` : null;
+  const a = sourceId(base.teamA);
+  const b = sourceId(base.teamB);
+  if (!a || !b) return '';
+  return `из ${a} / ${b}`;
 }
 
 function renderScheme(resolved) {
