@@ -32,7 +32,7 @@ export const MATCHES = [
   { id: 89, espnId: '760502', round: 'r16', kickoffUtc: '2026-07-04T17:00:00Z', venue: 'NRG Stadium', teamA: winner(73), teamB: winner(75) },
   { id: 90, espnId: '760503', round: 'r16', kickoffUtc: '2026-07-04T21:00:00Z', venue: 'Lincoln Financial Field', teamA: winner(74), teamB: winner(77) },
   { id: 91, espnId: '760504', round: 'r16', kickoffUtc: '2026-07-05T20:00:00Z', venue: 'MetLife Stadium', teamA: winner(76), teamB: winner(78) },
-  { id: 92, espnId: '760505', round: 'r16', kickoffUtc: '2026-07-06T00:00:00Z', venue: 'Estadio Banorte', teamA: winner(79), teamB: winner(80) },
+  { id: 92, espnId: '760505', round: 'r16', kickoffUtc: '2026-07-06T01:00:00Z', venue: 'Estadio Banorte', teamA: winner(79), teamB: winner(80) },
   { id: 93, espnId: '760506', round: 'r16', kickoffUtc: '2026-07-06T19:00:00Z', venue: 'AT&T Stadium', teamA: winner(83), teamB: winner(84) },
   { id: 94, espnId: '760507', round: 'r16', kickoffUtc: '2026-07-07T00:00:00Z', venue: 'Lumen Field', teamA: winner(81), teamB: winner(82) },
   { id: 95, espnId: '760509', round: 'r16', kickoffUtc: '2026-07-07T16:00:00Z', venue: 'Mercedes-Benz Stadium', teamA: winner(86), teamB: winner(88) },
