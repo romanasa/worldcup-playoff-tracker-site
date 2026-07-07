@@ -1,5 +1,5 @@
-import { MATCHES } from './data.js?v=r32-feeders1';
-import { isMatchLive, isMatchUpcoming, selectTodayMatches } from './liveUi.mjs?v=r32-feeders1';
+import { MATCHES } from './data.js?v=stage-labels1';
+import { isMatchLive, isMatchUpcoming, selectTodayMatches } from './liveUi.mjs?v=stage-labels1';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const KNOWN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
@@ -153,8 +153,8 @@ export function resolveBracket(state) {
 
 export function getBracketScheme(resolved) {
   const columns = [
-    { key: 'r32', label: '1/32 финала', visualIds: [73, 75, 74, 77, 76, 78, 79, 80, 83, 84, 81, 82, 86, 88, 85, 87] },
-    { key: 'r16', label: '1/16 финала' },
+    { key: 'r32', label: '1/16 финала', visualIds: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87] },
+    { key: 'r16', label: '1/8 финала', visualIds: [90, 89, 93, 94, 91, 92, 95, 96] },
     // Keep visual order explicit so each next-round card is fed by adjacent real source cards.
     { key: 'qf', label: '1/4 финала' },
     { key: 'sf', label: '1/2 финала' },

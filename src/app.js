@@ -1,8 +1,8 @@
-import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=r32-feeders1';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=r32-feeders1';
+import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=stage-labels1';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=stage-labels1';
 import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=odds-resolved1';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
-import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs?v=r32-feeders1';
+import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs?v=stage-labels1';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v3';
 const REFRESH_MS = 60_000;

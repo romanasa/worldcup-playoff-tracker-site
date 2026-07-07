@@ -1,8 +1,8 @@
 export const SCOREBOARD_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260628-20260719';
 
 export const ROUNDS = [
-  { key: 'r32', label: '1/32 финала', ids: [73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88] },
-  { key: 'r16', label: '1/16 финала', ids: [89,90,91,92,93,94,95,96] },
+  { key: 'r32', label: '1/16 финала', ids: [73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88] },
+  { key: 'r16', label: '1/8 финала', ids: [89,90,91,92,93,94,95,96] },
   { key: 'qf', label: '1/4 финала', ids: [97,98,99,100] },
   { key: 'sf', label: '1/2 финала', ids: [101,102] },
   { key: 'finals', label: 'Финалы', ids: [103,104] },
