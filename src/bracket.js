@@ -1,4 +1,5 @@
-import { MATCHES } from './data.js?v=scheme-order1';
+import { MATCHES } from './data.js?v=today-filter1';
+import { isMatchLive, isMatchUpcoming, selectTodayMatches } from './liveUi.mjs?v=today-filter1';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const KNOWN_TEAMS = new Map(MATCHES.flatMap((match) => [match.teamA, match.teamB])
@@ -221,13 +222,19 @@ export function getHomeSummary(resolved, now = new Date()) {
   const matches = [...resolved.matches].sort((a, b) => new Date(a.kickoffUtc) - new Date(b.kickoffUtc));
   const nowTime = now.getTime();
   const todayKey = tbilisiDateKey(now);
-  const live = matches.filter((m) => m.status?.state === 'in');
-  const upcoming = matches.filter((m) => !m.winner && new Date(m.kickoffUtc).getTime() >= nowTime);
+  const live = matches.filter(isMatchLive);
+  const upcoming = matches.filter((m) => isMatchUpcoming(m, now));
   const next = live[0] || upcoming[0] || null;
-  const today = matches.filter((m) => tbilisiDateKey(new Date(m.kickoffUtc)) === todayKey);
+  const today = selectTodayMatches(
+    matches,
+    todayKey,
+    (match) => tbilisiDateKey(new Date(match.kickoffUtc)),
+    now,
+  );
   return {
     live,
     today,
+    upcoming,
     next,
     countdown: next ? formatCountdown(new Date(next.kickoffUtc).getTime() - nowTime) : '',
     primary: live[0] ? { type: 'live', match: live[0] } : next ? { type: 'next', match: next } : { type: 'done', match: matches.at(-1) || null },

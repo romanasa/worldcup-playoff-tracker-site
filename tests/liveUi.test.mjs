@@ -4,6 +4,7 @@ import {
   displayStatusBadge,
   oddsFreshness,
   primaryMatchTiming,
+  selectTodayMatches,
 } from '../src/liveUi.mjs';
 
 test('displayStatusBadge localizes raw provider statuses', () => {
@@ -40,4 +41,21 @@ test('oddsFreshness keeps scheduled match odds usable even when old', () => {
   const market = { updatedAt: '2026-07-01T21:47:00.000Z' };
 
   assert.equal(oddsFreshness(match, market, 2 * 60_000).stale, false);
+});
+
+test('selectTodayMatches excludes already-passed non-live matches from home today block', () => {
+  const matches = [
+    { id: 1, kickoffUtc: '2026-07-07T00:00:00.000Z', status: { state: 'pre' } },
+    { id: 2, kickoffUtc: '2026-07-07T16:00:00.000Z', status: { state: 'pre' } },
+    { id: 3, kickoffUtc: '2026-07-07T20:00:00.000Z', status: { state: 'pre' } },
+    { id: 4, kickoffUtc: '2026-07-07T18:30:00.000Z', status: { state: 'in' } },
+    { id: 5, kickoffUtc: '2026-07-07T17:00:00.000Z', status: { state: 'post' }, winner: 'A' },
+  ];
+  const now = new Date('2026-07-07T19:07:00.000Z');
+  const sameTbilisiDay = () => '2026-07-07';
+
+  assert.deepEqual(
+    selectTodayMatches(matches, '2026-07-07', sameTbilisiDay, now).map((match) => match.id),
+    [3, 4],
+  );
 });

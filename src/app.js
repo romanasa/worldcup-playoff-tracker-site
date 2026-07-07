@@ -1,8 +1,8 @@
-import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=scheme-order1';
-import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=scheme-order1';
+import { MATCHES, ROUNDS, SCOREBOARD_URL } from './data.js?v=today-filter1';
+import { applyEspnScoreboard, createInitialState, formatTbilisiTime, getBracketScheme, getHomeSummary, getProgress, resolveBracket } from './bracket.js?v=today-filter1';
 import { formatOddsTime, getMatchOdds, oddsSnapshotUrls } from './odds.js?v=odds-resolved1';
 import { fetchTeamContext, findHeadToHead } from './teamContext.js';
-import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs';
+import { displayStatusBadge, oddsFreshness, primaryMatchTiming } from './liveUi.mjs?v=today-filter1';
 
 const STORAGE_KEY = 'wc2026-playoff-tracker-v2';
 const REFRESH_MS = 60_000;
@@ -100,7 +100,7 @@ function renderHome(resolved) {
   const primary = summary.primary.match;
   const isLive = summary.primary.type === 'live';
   const timing = primaryMatchTiming(summary);
-  const todayList = (summary.today.length ? summary.today : resolved.matches.filter((m) => !m.winner).slice(0, 3)).slice(0, 4);
+  const todayList = (summary.today.length ? summary.today : summary.upcoming.slice(0, 3)).slice(0, 4);
   $('homeSummary').innerHTML = `
     <article class="panel nowCard ${isLive ? 'liveNow' : ''}">
       <p class="eyebrow">${isLive ? 'Сейчас идёт' : 'Следующий матч'}</p>

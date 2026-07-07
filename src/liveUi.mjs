@@ -38,3 +38,25 @@ export function oddsFreshness(match, market, staleMs = LIVE_ODDS_STALE_MS) {
   const lagMs = scoreTime.getTime() - marketTime.getTime();
   return { stale: lagMs > staleMs, marketTime, scoreTime, lagMs };
 }
+
+export function isMatchLive(match) {
+  return match?.status?.state === 'in';
+}
+
+export function isMatchFinished(match) {
+  return Boolean(match?.winner || match?.status?.state === 'post');
+}
+
+export function isMatchUpcoming(match, now = new Date()) {
+  return !isMatchFinished(match) && new Date(match.kickoffUtc).getTime() >= now.getTime();
+}
+
+export function selectTodayMatches(matches, todayKey, dateKeyForMatch, now = new Date()) {
+  const nowTime = now.getTime();
+  return matches.filter((match) => {
+    if (dateKeyForMatch(match) !== todayKey) return false;
+    if (isMatchLive(match)) return true;
+    if (isMatchFinished(match)) return false;
+    return new Date(match.kickoffUtc).getTime() >= nowTime;
+  });
+}
