@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-05T21:38:10.140Z",
+  "updatedAt": "2026-08-05T22:41:51.321Z",
   "source": "The Odds API",
   "available": true,
   "note": "The Odds API currently does not expose a true to-qualify market for this sport. Snapshot uses event-specific h2h_3_way and draw_no_bet markets.",
